@@ -21,11 +21,36 @@ def create_vehicle(fake: Faker) -> dict:
     return vehicle
 
 
-def _tollways() -> list[str]:
-    tollways_html = requests.get(TOLLWAYS_URL)
-    soup = BeautifulSoup(markup=tollways_html.text, features="html.parser")
+def _states():
+    pass
 
-    content = soup.find_all("div", "mw-parser-output")
+
+def _state_tollways():
+    pass
+
+
+def tollways() -> list[str]:
+    tollways_html = requests.get(TOLLWAYS_URL)
+    wikipedia_soup = BeautifulSoup(markup=tollways_html.text, features="html.parser")
+
+    tollway_content = wikipedia_soup.find("div", class_="mw-parser-output")
+    tollway_subsection = BeautifulSoup(markup=str(tollway_content), features="html.parser")
+
+    subsection_states = [row.span.string for row in tollway_subsection.find_all("h2")]
+    subsection_tables = tollway_subsection.find_all("table", class_="wikitable")
+    names = []
+    for table in subsection_tables:
+        table_rows = table.tbody.find_all("tr")[1:]
+
+        state_tollways = []
+        for _ in table_rows:
+            state_tollways.append(_.td.a.string)
+        names.append(state_tollways)
+
+
+
+
+
 
 
 def create_tollway(tollways: list[str]) -> dict:
@@ -42,4 +67,4 @@ if __name__ == "__main__":
     # fake = Faker()
     # fake.add_provider(VehicleProvider)
     # vehicle = create_vehicle(fake=fake)
-    _tollways()
+    tollways()
