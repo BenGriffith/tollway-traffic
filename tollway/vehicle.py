@@ -1,4 +1,5 @@
 from random import choice
+from collections import deque
 
 import requests
 from bs4 import BeautifulSoup, Tag
@@ -7,6 +8,7 @@ from faker_vehicle import VehicleProvider
 from us.states import STATES
 
 
+STATE_NAMES = [state.name for state in STATES]
 TOLLWAYS_URL = "https://en.wikipedia.org/wiki/List_of_toll_roads_in_the_United_States"
 
 
@@ -21,11 +23,42 @@ def create_vehicle(fake: Faker) -> dict:
     return vehicle
 
 
-def _states():
-    pass
+def _tables_between_states(soup: BeautifulSoup) -> dict:
+    states = {}
+    table_count_between_states = 0
+    state_name = ""
+    for row in soup.contents[0]:
+        if not isinstance(row, Tag):
+            continue
+
+        if isinstance(row, Tag) and row.name == "h2" and row.span.string in STATE_NAMES:
+            state_name = row.span.string
+            table_count_between_states = 0
+
+        if isinstance(row, Tag) and row.name == "table" and state_name != "":
+            table_count_between_states += 1
+            states[state_name] = table_count_between_states
+    
+    return states
 
 
-def _state_tollways():
+def _state_tollways(soup: BeautifulSoup) -> list:
+    names = []
+    for table in soup.find_all("table", class_="wikitable"):
+        table_rows = table.tbody.find_all("tr")[1:]
+        #breakpoint()
+        state_tollways = []
+        for table_row in table_rows:
+            #breakpoint() # .find("a").string   _.td.find_all("a")[-1].string
+            # tollway_names = [ for table_row in td.find_all("a").string]
+            breakpoint()
+            state_tollways.append(table_row.td.find_all("a")[-1].string)
+        names.append(state_tollways)
+    
+    return names
+
+
+def _merge_state_tollways():
     pass
 
 
@@ -36,50 +69,11 @@ def tollways() -> list[str]:
     tollway_content = wikipedia_soup.find("div", class_="mw-parser-output")
     tollway_subsection = BeautifulSoup(markup=str(tollway_content), features="html.parser")
 
-    state_names = [row.span.string for row in tollway_subsection.find_all("h2")]
+    tables_between_states = _tables_between_states(soup=tollway_subsection)
+    state_tollways = _state_tollways(soup=tollway_subsection)
 
-    # process tables in state subsection
-
-    # for row in tollway_subsection.find_all("h2"):
-    #     row
-
-
-    # subsection_tables = tollway_subsection.find_all("table", class_="wikitable")
-    # names = []
-    # for table in subsection_tables:
-    #     table_rows = table.tbody.find_all("tr")[1:]
-
-    #     state_tollways = []
-    #     for _ in table_rows:
-    #         state_tollways.append(_.td.a.string)
-    #     names.append(state_tollways)
-
-    # h2 -> state name
-    # search for wikitable and process all until next h2
-
-    state_managed_table_count = {}
-    table_count = 0
-    state = ""
-    for row in tollway_subsection.contents[0]:
-
-        if isinstance(row, Tag) and row.name == "h2":
-            state = row.span.string
-            table_count = 0
-
-
-        if isinstance(row, Tag) and row.name == "table":
-            table_count += 1
-
-            state_managed_table_count[state] = table_count
-        
-            # if h2:
-            #     breakpoint()
+    #for state_name, table_count in tables_between_states.items():
     breakpoint()
-
-
-
-
-
 
 
 def create_tollway(tollways: list[str]) -> dict:
