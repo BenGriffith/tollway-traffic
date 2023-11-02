@@ -1,7 +1,7 @@
 from random import choice
 
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 from faker import Faker
 from faker_vehicle import VehicleProvider
 from us.states import STATES
@@ -36,16 +36,45 @@ def tollways() -> list[str]:
     tollway_content = wikipedia_soup.find("div", class_="mw-parser-output")
     tollway_subsection = BeautifulSoup(markup=str(tollway_content), features="html.parser")
 
-    subsection_states = [row.span.string for row in tollway_subsection.find_all("h2")]
-    subsection_tables = tollway_subsection.find_all("table", class_="wikitable")
-    names = []
-    for table in subsection_tables:
-        table_rows = table.tbody.find_all("tr")[1:]
+    state_names = [row.span.string for row in tollway_subsection.find_all("h2")]
 
-        state_tollways = []
-        for _ in table_rows:
-            state_tollways.append(_.td.a.string)
-        names.append(state_tollways)
+    # process tables in state subsection
+
+    # for row in tollway_subsection.find_all("h2"):
+    #     row
+
+
+    # subsection_tables = tollway_subsection.find_all("table", class_="wikitable")
+    # names = []
+    # for table in subsection_tables:
+    #     table_rows = table.tbody.find_all("tr")[1:]
+
+    #     state_tollways = []
+    #     for _ in table_rows:
+    #         state_tollways.append(_.td.a.string)
+    #     names.append(state_tollways)
+
+    # h2 -> state name
+    # search for wikitable and process all until next h2
+
+    state_managed_table_count = {}
+    table_count = 0
+    state = ""
+    for row in tollway_subsection.contents[0]:
+
+        if isinstance(row, Tag) and row.name == "h2":
+            state = row.span.string
+            table_count = 0
+
+
+        if isinstance(row, Tag) and row.name == "table":
+            table_count += 1
+
+            state_managed_table_count[state] = table_count
+        
+            # if h2:
+            #     breakpoint()
+    breakpoint()
 
 
 
