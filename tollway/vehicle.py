@@ -1,8 +1,7 @@
 from random import choice
-from collections import defaultdict
 
 import requests
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 from faker import Faker
 from faker_vehicle import VehicleProvider
 from us.states import STATES_AND_TERRITORIES
@@ -30,20 +29,23 @@ def get_tollways(html: str | None = None) -> dict:
     page = BeautifulSoup(markup=html.text, features="html.parser")
     soup = page.find("div", class_="mw-parser-output")
 
-    states = [h2.text.replace("[edit]", "") for h2 in soup.find_all('h2')]
+    states = [h2.text.replace("[edit]", "") for h2 in soup.find_all("h2")]
 
     tables = []
-    for h2 in soup.find_all('h2'):
+    for h2 in soup.find_all("h2"):
         tolls = []
 
         for sibling in h2.find_next_siblings():
-            if sibling.name == 'table':
+            if sibling.name == "table":
                 tolls.extend(
-                    [td.text.strip() for tr in sibling.find_all('tr')
-                    if (td := tr.find('td')) is not None]
+                    [
+                        td.text.strip()
+                        for tr in sibling.find_all("tr")
+                        if (td := tr.find("td")) is not None
+                    ]
                 )
             # don't include tables after the next h2
-            if sibling.name == 'h2':
+            if sibling.name == "h2":
                 break
 
         tables.append(tolls)
@@ -61,7 +63,7 @@ def create_tollway(tollways: dict) -> [str, str]:
 
 
 def create_message() -> None:
-    pass # placeholder - needs to be developed
+    pass  # placeholder - needs to be developed
 
 
 # code below/like it will be moved to dunder main once module is complete
