@@ -1,4 +1,5 @@
 from random import choice
+from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -22,7 +23,7 @@ def create_vehicle(fake: Faker) -> dict:
     return vehicle
 
 
-def get_tollways(html: str | None = None) -> dict:
+def get_tollways(html: Optional[str] = None) -> dict:
     if html is None:
         html = requests.get(TOLLWAYS_URL)
 
@@ -33,8 +34,10 @@ def get_tollways(html: str | None = None) -> dict:
 
     tables = []
     for h2 in soup.find_all("h2"):
-        tolls = []
+        if h2.span.string not in STATE_NAMES:
+            continue
 
+        tolls = []
         for sibling in h2.find_next_siblings():
             if sibling.name == "table":
                 tolls.extend(
