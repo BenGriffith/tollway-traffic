@@ -14,7 +14,7 @@ TOLLWAYS_URL = "https://en.wikipedia.org/wiki/List_of_toll_roads_in_the_United_S
 
 def create_vehicle(fake: Faker) -> dict:
 
-    vehicle = {f"{key.lower()}": value for key, value in fake.vehicle_object().items()}
+    vehicle = {key.lower(): value for key, value in fake.vehicle_object().items()}
     vehicle["license_plate"] = fake.license_plate()
     vehicle["vin"] = fake.vin()
     vehicle["state"] = choice(STATES_AND_TERRITORIES).abbr
@@ -60,8 +60,8 @@ def get_tollways(html: Optional[str] = None) -> dict:
 
 
 def create_tollway(tollways: dict) -> [str, str]:
-    state = choice([key for key in tollways.keys()])
-    name = choice(list(tollways[state]))
+    state = choice(list(tollways.keys()))
+    name = choice(tollways[state])
     return state, name
 
 
@@ -73,7 +73,6 @@ def create_message() -> None:
 if __name__ == "__main__":
     tollways = get_tollways()
     tollway_state, tollway_name = create_tollway(tollways)
-    breakpoint()
     fake = Faker()
     fake.add_provider(VehicleProvider)
     vehicle = create_vehicle(fake=fake)
