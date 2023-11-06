@@ -1,3 +1,4 @@
+import unicodedata
 from random import choice
 from typing import Optional
 
@@ -42,7 +43,7 @@ def get_tollways(html: Optional[str] = None) -> dict:
             if sibling.name == "table":
                 tolls.extend(
                     [
-                        td.text.strip()
+                        unicodedata.normalize("NFKD", td.text.strip())
                         for tr in sibling.find_all("tr")
                         if (td := tr.find("td")) is not None
                     ]
