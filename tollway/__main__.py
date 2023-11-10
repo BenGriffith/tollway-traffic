@@ -13,25 +13,21 @@ fake.add_provider(VehicleProvider)
 
 
 def main(
-        total_messages: Optional[int] = typer.Option(default=1),
-        message_delay: Optional[int] = typer.Option(default=1)):
+        total_events: Optional[int] = typer.Option(default=1),
+        streaming_rate: Optional[int] = typer.Option(default=1),
+        output_file: Optional[bool] = typer.Option(default=False),
+        date_variation: Optional[bool] = typer.Option(default=False),
+        include_late: Optional[bool] = typer.Option(default=False)
+        ):
 
     tollway = create_tollway(tollways)
 
-    for message_count in range(total_messages):
+    for message_count in range(total_events):
         vehicle = create_vehicle(fake=fake) # update date use in create_vehicle
         payload = create_message(vehicle=vehicle, tollway=tollway)
 
-        time.sleep(message_delay)
+        time.sleep(streaming_rate)
     
-
-    # number of messages - total_messages
-    # time between messages - message_delay
-    # number of messages in one day - create_in_day
-        # different dates
-    # late arriving events -> late_arriving or out_of_order
-
-
 
 if __name__ == "__main__":
     typer.run(main)
