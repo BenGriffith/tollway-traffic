@@ -11,6 +11,7 @@ from us.states import STATES_AND_TERRITORIES
 
 STATE_NAMES = [state.name for state in STATES_AND_TERRITORIES]
 TOLLWAYS_URL = "https://en.wikipedia.org/wiki/List_of_toll_roads_in_the_United_States"
+TIMESTAMP_FORMAT = "%Y-%m-%d %M:%H:%S.%f %Z"
 
 
 def create_vehicle(fake: Faker) -> dict:
@@ -72,5 +73,5 @@ def create_message(vehicle: dict, tollway: tuple) -> dict:
         "tollway_name": tollway[1],
     }
     vehicle.update(tollway)
-    vehicle["timestamp"] = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %M:%H:%S.%f %Z")
+    vehicle["timestamp"] = datetime.now(tz=timezone.utc).strftime(TIMESTAMP_FORMAT)
     return vehicle
