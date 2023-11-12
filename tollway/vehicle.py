@@ -67,7 +67,7 @@ def create_tollway(tollways: dict) -> tuple[str, str]:
     return state, name
 
 
-def create_message(vehicle: dict, tollway: tuple) -> dict:
+def create_payload(vehicle: dict, tollway: tuple) -> dict:
     tollway = {
         "tollway_state": tollway[0],
         "tollway_name": tollway[1],
