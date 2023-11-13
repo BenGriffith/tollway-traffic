@@ -1,16 +1,17 @@
 import unicodedata
 from random import choice
 from typing import Optional
+from datetime import datetime, timezone
 
 import requests
-from bs4 import BeautifulSoup
 from faker import Faker
-from faker_vehicle import VehicleProvider
+from bs4 import BeautifulSoup
 from us.states import STATES_AND_TERRITORIES
 
 
 STATE_NAMES = [state.name for state in STATES_AND_TERRITORIES]
 TOLLWAYS_URL = "https://en.wikipedia.org/wiki/List_of_toll_roads_in_the_United_States"
+TIMESTAMP_FORMAT = "%Y-%m-%d %M:%H:%S.%f %Z"
 
 
 def create_vehicle(fake: Faker) -> dict:
@@ -60,20 +61,17 @@ def get_tollways(html: Optional[str] = None) -> dict:
     return united_states_tollways
 
 
-def create_tollway(tollways: dict) -> [str, str]:
-    state = choice(list(tollways.keys()))
+def create_tollway(tollways: dict) -> tuple[str, str]:
+    state = choice(list(tollways.keys()))  
     name = choice(tollways[state])
     return state, name
 
 
-def create_message() -> None:
-    pass  # placeholder - needs to be developed
-
-
-# code below/like it will be moved to dunder main once module is complete
-if __name__ == "__main__":
-    tollways = get_tollways()
-    tollway_state, tollway_name = create_tollway(tollways)
-    fake = Faker()
-    fake.add_provider(VehicleProvider)
-    vehicle = create_vehicle(fake=fake)
+def create_payload(vehicle: dict, tollway: tuple) -> dict:
+    tollway = {
+        "tollway_state": tollway[0],
+        "tollway_name": tollway[1],
+    }
+    vehicle.update(tollway)
+    vehicle["timestamp"] = datetime.now(tz=timezone.utc).strftime(TIMESTAMP_FORMAT)
+    return vehicle
