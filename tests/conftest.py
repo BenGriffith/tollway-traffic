@@ -2,7 +2,12 @@ import pytest
 from faker import Faker
 from faker_vehicle import VehicleProvider
 
-from tollway.vehicle import create_vehicle, STATES_AND_TERRITORIES
+from tollway.vehicle import (
+    create_vehicle, 
+    get_tollways,
+    create_tollway,
+    STATES_AND_TERRITORIES,
+)
 
 
 @pytest.fixture
@@ -18,3 +23,13 @@ def setup():
 @pytest.fixture
 def vehicle(setup):
     return create_vehicle(fake=setup.get("faker"))
+
+
+@pytest.fixture(scope="session")
+def tollways():
+    return get_tollways()
+
+
+@pytest.fixture
+def get_tollway(tollways):
+    return create_tollway(tollways)
