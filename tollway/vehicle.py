@@ -8,10 +8,7 @@ from faker import Faker
 from bs4 import BeautifulSoup
 from us.states import STATES_AND_TERRITORIES
 
-
-STATE_NAMES = [state.name for state in STATES_AND_TERRITORIES]
-TOLLWAYS_URL = "https://en.wikipedia.org/wiki/List_of_toll_roads_in_the_United_States"
-TIMESTAMP_FORMAT = "%Y-%m-%d %M:%H:%S.%f %Z"
+from tollway.utils import Constants
 
 
 def create_vehicle(fake: Faker) -> dict:
@@ -27,7 +24,7 @@ def create_vehicle(fake: Faker) -> dict:
 
 def get_tollways(html: Optional[str] = None) -> dict:
     if html is None:
-        html = requests.get(TOLLWAYS_URL)
+        html = requests.get(Constants.TOLLWAYS_URL.value)
 
     page = BeautifulSoup(markup=html.text, features="html.parser")
     soup = page.find("div", class_="mw-parser-output")
@@ -36,7 +33,7 @@ def get_tollways(html: Optional[str] = None) -> dict:
 
     tables = []
     for h2 in soup.find_all("h2"):
-        if h2.span.string not in STATE_NAMES:
+        if h2.span.string not in Constants.STATE_NAMES.value:
             continue
 
         tolls = []
@@ -73,5 +70,5 @@ def create_payload(vehicle: dict, tollway: tuple) -> dict:
         "tollway_name": tollway[1],
     }
     vehicle.update(tollway)
-    vehicle["timestamp"] = datetime.now(tz=timezone.utc).strftime(TIMESTAMP_FORMAT)
+    vehicle["timestamp"] = datetime.now(tz=timezone.utc).strftime(Constants.TIMESTAMP_FORMAT.value)
     return vehicle

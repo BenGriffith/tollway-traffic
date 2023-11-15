@@ -1,5 +1,3 @@
-from enum import Enum
-
 import pytest
 from faker import Faker
 from faker_vehicle import VehicleProvider
