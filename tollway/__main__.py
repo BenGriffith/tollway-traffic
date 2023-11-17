@@ -6,19 +6,9 @@ import typer
 from faker import Faker
 from faker_vehicle import VehicleProvider
 
-from tollway.vehicle import (
-    get_tollways, 
-    create_tollway, 
-    create_vehicle, 
-    create_payload,
-)
-
-from tollway.utils import (
-    get_date_variation,
-    get_random_timestamp,
-    write_to_file,
-    Constants,
-)
+from tollway.vehicle import get_tollways, create_tollway, create_vehicle, create_payload
+from tollway.utils import get_date_variation, get_random_timestamp, write_to_file
+from tollway.constants import DATE_VARIATION_RATE, INCLUDE_LATE_RATE, INCLUDE_DUPLICATE_RATE, ALL_EVENTS_COUNT
 
 
 tollways = get_tollways()
@@ -47,7 +37,7 @@ def main(
         payload = create_payload(vehicle=vehicle, tollway=tollway)
 
         if date_variation:
-            if event_count % Constants.DATE_VARIATION_RATE.value == 0:
+            if event_count % DATE_VARIATION_RATE == 0:
                 payload["timestamp"] = get_date_variation(timestamp=payload.get("timestamp"))
             date_variation_events.append(payload)
             continue
@@ -58,7 +48,7 @@ def main(
         if include_duplicate:
             past_events.append(payload)
 
-        if len(past_events_timestamps) == Constants.INCLUDE_LATE_RATE.value:
+        if len(past_events_timestamps) == INCLUDE_LATE_RATE:
             late_vehicle = create_vehicle(fake=fake)
             late_event = create_payload(vehicle=late_vehicle, tollway=tollway)
 
@@ -70,7 +60,7 @@ def main(
             past_events = []
             continue
 
-        if len(past_events) == Constants.INCLUDE_DUPLICATE_RATE.value:
+        if len(past_events) == INCLUDE_DUPLICATE_RATE:
             duplicate_event = random.choice(past_events)
 
             # push duplicate event to topic
@@ -82,7 +72,7 @@ def main(
 
         all_events.append(payload)
 
-        if output_file and len(all_events) == Constants.ALL_EVENTS_COUNT.value:
+        if output_file and len(all_events) == ALL_EVENTS_COUNT:
             write_to_file(filename=output_filename, events=all_events)
         time.sleep(event_rate)
 
