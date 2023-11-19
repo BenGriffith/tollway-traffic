@@ -9,8 +9,8 @@ def create_late_event(events_log: dict, fake: Faker, tollway: dict) -> dict:
     past_timestamps = events_log.get("past_events_timestamps")
     late_event_vehicle = create_vehicle(fake)
     late_event_payload = create_payload(late_event_vehicle, tollway)
-    random_timestamp = random.choice(past_timestamps)[: len(past_timestamps)]
-    late_event_payload["timestamp"] = random_timestamp
+    random_ts = random.choice(past_timestamps[slice(0, len(past_timestamps))])
+    late_event_payload["timestamp"] = random_ts
     return late_event_payload
 
 
