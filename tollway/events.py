@@ -2,30 +2,35 @@ import random
 
 from faker import Faker
 
-from tollway.vehicle import create_vehicle, create_payload
+from tollway.vehicle import create_payload, create_vehicle
 
 
 def create_late_event(events_log: dict, fake: Faker, tollway: dict) -> dict:
-    late_event_vehicle = create_vehicle(fake=fake)
-    late_event_payload = create_payload(vehicle=late_event_vehicle, tollway=tollway)
-
-    late_event_payload["timestamp"] = random.choice(events_log.get("past_events_timestamps")[:len(events_log.get("past_events_timestamps"))])
-
+    past_timestamps = events_log.get("past_events_timestamps")
+    late_event_vehicle = create_vehicle(fake)
+    late_event_payload = create_payload(late_event_vehicle, tollway)
+    random_timestamp = random.choice(past_timestamps)[: len(past_timestamps)]
+    late_event_payload["timestamp"] = random_timestamp
     return late_event_payload
 
 
 def process_late_event(events_log: dict, fake: Faker, tollway: dict) -> dict:
-    late_event_payload = create_late_event(events_log=events_log, fake=fake, tollway=tollway)
-    
+    late_event_payload = create_late_event(events_log, fake, tollway)
+
     # push to topic
     events_log.get("all_events").append(late_event_payload)
     events_log["past_events_timestamps"] = []
     return events_log
 
 
-def process_duplicate_event(events_log: dict) -> dict:
+def create_duplicate_event(events_log: dict) -> dict:
     duplicate_event = random.choice(events_log.get("past_events"))
-    
+    return duplicate_event
+
+
+def process_duplicate_event(events_log: dict) -> dict:
+    duplicate_event = create_duplicate_event(events_log)
+
     # push to topic
     events_log.get("all_events").append(duplicate_event)
     events_log["past_events"] = []
