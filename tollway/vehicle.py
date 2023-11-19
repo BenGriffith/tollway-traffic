@@ -8,10 +8,7 @@ from faker import Faker
 from bs4 import BeautifulSoup
 from us.states import STATES_AND_TERRITORIES
 
-
-STATE_NAMES = [state.name for state in STATES_AND_TERRITORIES]
-TOLLWAYS_URL = "https://en.wikipedia.org/wiki/List_of_toll_roads_in_the_United_States"
-TIMESTAMP_FORMAT = "%Y-%m-%d %M:%H:%S.%f %Z"
+from tollway.constants import TOLLWAYS_URL, STATE_NAMES, TIMESTAMP_FORMAT
 
 
 def create_vehicle(fake: Faker) -> dict:

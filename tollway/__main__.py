@@ -1,58 +1,20 @@
 import time
 import random
-import json
 from typing import Optional
-from datetime import datetime, timedelta
-from pathlib import Path
 
 import typer
 from faker import Faker
 from faker_vehicle import VehicleProvider
 
-from tollway.vehicle import (
-    get_tollways, 
-    create_tollway, 
-    create_vehicle, 
-    create_payload,
-    TIMESTAMP_FORMAT,
-)
+from tollway.vehicle import get_tollways, create_tollway, create_vehicle, create_payload
+from tollway.utils import get_date_variation, write_to_file
+from tollway.constants import DATE_VARIATION_RATE, INCLUDE_LATE_RATE, INCLUDE_DUPLICATE_RATE, ALL_EVENTS_COUNT
+from tollway.events import process_late_event, process_duplicate_event
 
-
-DATE_VARIATION_RATE = 3
-INCLUDE_LATE_RATE = 20
-INCLUDE_DUPLICATE_RATE = 50
-ALL_EVENTS_COUNT = 100
 
 tollways = get_tollways()
 fake = Faker()
 fake.add_provider(VehicleProvider)
-
-
-def _get_random_timestamp(timestamps: list[str]) -> str:
-    first_timestamp = datetime.strptime(timestamps[0], TIMESTAMP_FORMAT)
-    middle_timestamp = datetime.strptime(timestamps[len(timestamps) // 2], TIMESTAMP_FORMAT)
-
-    random_percentage = random.random()
-    timestamp_range = middle_timestamp - first_timestamp
-    random_timestamp = (first_timestamp + random_percentage * timestamp_range).strftime(TIMESTAMP_FORMAT)
-    return random_timestamp
-
-
-def _push_to_topic():
-    pass # to be developed
-
-
-def _write_to_file(filename: str, events: list[dict]):
-    path = str(Path().absolute())
-    with open(f"{path}/{filename}", mode="a") as file:
-        json.dump(obj=events, fp=file, indent=4)
-
-
-def _date_variation(timestamp: str) -> str:
-    random_integer = random.randint(1, 3)
-    current_timestamp = datetime.strptime(timestamp, TIMESTAMP_FORMAT)
-    updated_timestamp = (current_timestamp - timedelta(days=random_integer)).strftime(TIMESTAMP_FORMAT)
-    return updated_timestamp
 
 
 def main(
@@ -66,59 +28,54 @@ def main(
         ):
 
     tollway = create_tollway(tollways)
-    date_variation_events = []
-    past_events_timestamps = []
-    past_events = []
-    all_events = []
+    events_log = {
+        "past_events_timestamps": [],
+        "past_events": [],
+        "all_events": [],
+    }
+
+    if date_variation:
+        include_late = False
+        include_duplicate = False
 
     for event_count in range(total_events):
+
+        # create new event
         vehicle = create_vehicle(fake=fake)
         payload = create_payload(vehicle=vehicle, tollway=tollway)
 
-        if date_variation:
-            if event_count % DATE_VARIATION_RATE == 0:
-                payload["timestamp"] = _date_variation(timestamp=payload.get("timestamp"))
-            date_variation_events.append(payload)
+        # DATE VARIATION
+        if date_variation and event_count % DATE_VARIATION_RATE == 0:
+            payload["timestamp"] = get_date_variation(timestamp=payload.get("timestamp"))
+            # push to topic
             continue
 
+        # LATE EVENTS
         if include_late:
-            past_events_timestamps.append(payload.get("timestamp"))
-        
+            if len(events_log.get("past_events_timestamps")) == INCLUDE_LATE_RATE:
+                events_log = process_late_event(events_log=events_log, fake=fake, tollway=tollway)
+            events_log.get("past_events_timestamps").append(payload.get("timestamp"))
+            continue
+
+        # DUPLICATE EVENTS        
         if include_duplicate:
-            past_events.append(payload)
-
-        if len(past_events_timestamps) == INCLUDE_LATE_RATE:
-            late_vehicle = create_vehicle(fake=fake)
-            late_event = create_payload(vehicle=late_vehicle, tollway=tollway)
-
-            random_timestamp = _get_random_timestamp(timestamps=past_events_timestamps)
-            late_event["timestamp"] = random_timestamp
-
-            # push late event to topic
-            all_events.append(late_event)
-            past_events = []
+            if len(events_log.get("past_events")) == INCLUDE_DUPLICATE_RATE:
+                events_log = process_duplicate_event(events_log=events_log)
+            events_log.get("past_events").append(payload)
             continue
 
-        if len(past_events) == INCLUDE_DUPLICATE_RATE:
-            duplicate_event = random.choice(past_events)
+        # captures all events except late and duplicate
+        events_log.get("all_events").append(payload)
 
-            # push duplicate event to topic
-            all_events.append(duplicate_event)
-            past_events = []
-            continue
-
-        # push event to topic
-
-        all_events.append(payload)
-
-        if output_file and len(all_events) == ALL_EVENTS_COUNT:
-            _write_to_file(filename=output_filename, events=all_events)
+        if output_file and len(events_log.get("all_events")) == ALL_EVENTS_COUNT:
+            write_to_file(filename=output_filename, events_log=events_log.get("all_events"))
+            events_log["all_events"] = []
+            
         time.sleep(event_rate)
-
-    if date_variation:
-        _write_to_file(filename=output_file, events=date_variation_events)
-        # push to topic
     
+    # when iterating stops, if any events events remain in events_log["all_events"] they will be handled here
+    if output_file and len(events_log.get("all_events")) > 0:
+        write_to_file(filename=output_filename, events_log=events_log.get("all_events"))
     
 if __name__ == "__main__":
     typer.run(main)
