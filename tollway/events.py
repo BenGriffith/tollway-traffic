@@ -1,23 +1,33 @@
 import random
 
 from faker import Faker
+from google.pubsub_v1 import PublisherClient, Topic
 
-from tollway.vehicle import create_payload, create_vehicle
+from tollway.utils import encode_message
+from tollway.vehicle import create_payload, create_tollway, create_vehicle
 
 
-def create_late_event(events_log: dict, fake: Faker, tollway: dict) -> dict:
+def create_late_event(events_log: dict, fake: Faker, tollways: dict) -> dict:
     past_timestamps = events_log.get("past_events_timestamps")
+    late_event_tollway = create_tollway(tollways=tollways)
     late_event_vehicle = create_vehicle(fake)
-    late_event_payload = create_payload(late_event_vehicle, tollway)
+    late_event_payload = create_payload(late_event_vehicle, late_event_tollway)
     random_ts = random.choice(past_timestamps[slice(0, len(past_timestamps))])
     late_event_payload["timestamp"] = random_ts
     return late_event_payload
 
 
-def process_late_event(events_log: dict, fake: Faker, tollway: dict) -> dict:
-    late_event_payload = create_late_event(events_log, fake, tollway)
-
-    # push to topic
+def process_late_event(
+    events_log: dict,
+    fake: Faker,
+    tollways: dict,
+    publisher: PublisherClient,
+    topic_path: Topic,
+) -> dict:
+    late_event_payload = create_late_event(events_log, fake, tollways)
+    if publisher and topic_path:
+        data = encode_message(payload=late_event_payload)
+        future = publisher.publish(topic=topic_path, data=data)
     events_log.get("all_events").append(late_event_payload)
     events_log["past_events_timestamps"] = []
     return events_log
@@ -28,10 +38,11 @@ def create_duplicate_event(events_log: dict) -> dict:
     return duplicate_event
 
 
-def process_duplicate_event(events_log: dict) -> dict:
+def process_duplicate_event(events_log: dict, publisher: PublisherClient, topic_path: Topic) -> dict:
     duplicate_event = create_duplicate_event(events_log)
-
-    # push to topic
+    if publisher and topic_path:
+        data = encode_message(payload=duplicate_event)
+        future = publisher.publish(topic=topic_path, data=data)
     events_log.get("all_events").append(duplicate_event)
     events_log["past_events"] = []
     return events_log
