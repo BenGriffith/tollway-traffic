@@ -5,6 +5,7 @@ from faker import Faker
 from faker_vehicle import VehicleProvider
 from typing_extensions import Annotated
 
+from tollway.callbacks import er_callback, of_callback, te_callback
 from tollway.constants import (
     ALL_EVENTS_COUNT,
     DATE_VARIATION_RATE,
@@ -22,10 +23,12 @@ fake.add_provider(VehicleProvider)
 
 
 def main(
-    total_events: Annotated[int, typer.Option(help=Help.TOTAL_EVENTS.value)] = 1,
-    event_rate: Annotated[float, typer.Option(help=Help.EVENT_RATE.value)] = 1.0,
+    total_events: Annotated[int, typer.Option(help=Help.TOTAL_EVENTS.value, callback=te_callback)] = 1,
+    event_rate: Annotated[float, typer.Option(help=Help.EVENT_RATE.value, callback=er_callback)] = 1.0,
     output_file: Annotated[bool, typer.Option(help=Help.OUTPUT_FILE.value)] = False,
-    output_filename: Annotated[str, typer.Option(help=Help.OUTPUT_FILENAME.value)] = "tollway-traffic.json",
+    output_filename: Annotated[
+        str, typer.Option(help=Help.OUTPUT_FILENAME.value, callback=of_callback)
+    ] = "tollway-traffic.json",
     date_variation: Annotated[bool, typer.Option(help=Help.DATE_VARIATION.value)] = False,
     include_late: Annotated[bool, typer.Option(help=Help.INCLUDE_LATE.value)] = False,
     include_duplicate: Annotated[bool, typer.Option(help=Help.INCLUDE_DUPLICATE.value)] = False,
@@ -38,7 +41,6 @@ def main(
         "all_events": [],
     }
 
-    # argument checks?
     if pubsub:
         publisher, topic_path = get_topic()
 

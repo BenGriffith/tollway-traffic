@@ -13,6 +13,7 @@ INCLUDE_DUPLICATE_RATE = 50
 ALL_EVENTS_COUNT = 250
 PROJECT_ID = config("PROJECT_ID")
 TOPIC_ID = config("TOPIC_ID")
+FILE_SUFFIX = "json"
 
 
 class Help(Enum):
