@@ -5,11 +5,17 @@ from pathlib import Path
 
 from google.cloud import pubsub_v1
 
-from tollway.constants import PROJECT_ID, TIMESTAMP_FORMAT, TOPIC_ID
+from tollway.constants import (
+    DATE_VARIATION_MAX,
+    DATE_VARIATION_MIN,
+    PROJECT_ID,
+    TIMESTAMP_FORMAT,
+    TOPIC_ID,
+)
 
 
 def get_date_variation(timestamp: str) -> str:
-    random_integer = random.randint(1, 3)
+    random_integer = random.randint(DATE_VARIATION_MIN, DATE_VARIATION_MAX)
     current_timestamp = datetime.strptime(timestamp, TIMESTAMP_FORMAT)
     updated_timestamp = (current_timestamp - timedelta(days=random_integer)).strftime(TIMESTAMP_FORMAT)
     return updated_timestamp
