@@ -5,7 +5,12 @@ from faker import Faker
 from faker_vehicle import VehicleProvider
 from typing_extensions import Annotated
 
-from tollway.callbacks import er_callback, of_callback, te_callback
+from tollway.callbacks import (
+    behavior_callback,
+    event_rate_callback,
+    filename_callback,
+    total_event_callback,
+)
 from tollway.constants import (
     ALL_EVENTS_COUNT,
     DATE_VARIATION_RATE,
@@ -17,21 +22,29 @@ from tollway.events import process_duplicate_event, process_late_event
 from tollway.utils import encode_message, get_date_variation, get_topic, write_to_file
 from tollway.vehicle import create_payload, create_tollway, create_vehicle, get_tollways
 
+app = typer.Typer()
 tollways = get_tollways()
 fake = Faker()
 fake.add_provider(VehicleProvider)
 
 
+@app.command()
 def main(
-    total_events: Annotated[int, typer.Option(help=Help.TOTAL_EVENTS.value, callback=te_callback)] = 1,
-    event_rate: Annotated[float, typer.Option(help=Help.EVENT_RATE.value, callback=er_callback)] = 1.0,
+    total_events: Annotated[
+        int, typer.Option(help=Help.TOTAL_EVENTS.value, callback=total_event_callback)
+    ] = 1,
+    event_rate: Annotated[
+        float, typer.Option(help=Help.EVENT_RATE.value, callback=event_rate_callback)
+    ] = 1.0,
     output_file: Annotated[bool, typer.Option(help=Help.OUTPUT_FILE.value)] = False,
     output_filename: Annotated[
-        str, typer.Option(help=Help.OUTPUT_FILENAME.value, callback=of_callback)
+        str, typer.Option(help=Help.OUTPUT_FILENAME.value, callback=filename_callback)
     ] = "tollway-traffic.json",
     date_variation: Annotated[bool, typer.Option(help=Help.DATE_VARIATION.value)] = False,
     include_late: Annotated[bool, typer.Option(help=Help.INCLUDE_LATE.value)] = False,
-    include_duplicate: Annotated[bool, typer.Option(help=Help.INCLUDE_DUPLICATE.value)] = False,
+    include_duplicate: Annotated[
+        bool, typer.Option(help=Help.INCLUDE_DUPLICATE.value, callback=behavior_callback)
+    ] = False,
     pubsub: Annotated[bool, typer.Option(help=Help.PUBSUB.value)] = False,
 ):
 
@@ -58,7 +71,6 @@ def main(
         # DATE VARIATION
         if date_variation and event_count % DATE_VARIATION_RATE == 0:
             payload["timestamp"] = get_date_variation(timestamp=payload.get("timestamp"))
-            continue
 
         # LATE EVENTS
         if include_late:
@@ -103,4 +115,4 @@ def main(
 
 
 if __name__ == "__main__":
-    typer.run(main)
+    app()

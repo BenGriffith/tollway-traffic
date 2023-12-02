@@ -12,6 +12,8 @@ runner = CliRunner()
         (["--total-events", 10, "--event-rate", 0.01], 0),
         (["--total-events", "ten"], 2),  # invalid type
         (["--total-events", -10], 2),  # callback
+        (["--event-rate", -1], 2),  # callback
+        (["--output-file", "True"], 2),  # invalid type
     ],
 )
 def test_app_inputs(test_input, expected):
