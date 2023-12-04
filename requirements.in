@@ -2,3 +2,5 @@ typer
 pytest
 pre-commit
 faker
+google-cloud-pubsub
+python-decouple

@@ -1,19 +1,20 @@
 import unicodedata
+from datetime import datetime, timezone
 from random import choice
 from typing import Optional
-from datetime import datetime, timezone
 
 import requests
-from faker import Faker
 from bs4 import BeautifulSoup
+from faker import Faker
 from us.states import STATES_AND_TERRITORIES
 
-from tollway.constants import TOLLWAYS_URL, STATE_NAMES, TIMESTAMP_FORMAT
+from tollway.constants import STATE_NAMES, TIMESTAMP_FORMAT, TOLLWAYS_URL
 
 
 def create_vehicle(fake: Faker) -> dict:
 
     vehicle = {key.lower(): value for key, value in fake.vehicle_object().items()}
+    vehicle["year"] = str(vehicle["year"])
     vehicle["license_plate"] = fake.license_plate()
     vehicle["vin"] = fake.vin()
     vehicle["state"] = choice(STATES_AND_TERRITORIES).abbr
@@ -52,14 +53,12 @@ def get_tollways(html: Optional[str] = None) -> dict:
 
         tables.append(tolls)
 
-    united_states_tollways = dict(
-        (state, tolls) for state, tolls in zip(states, tables) if tolls
-    )
+    united_states_tollways = dict((state, tolls) for state, tolls in zip(states, tables) if tolls)
     return united_states_tollways
 
 
 def create_tollway(tollways: dict) -> tuple[str, str]:
-    state = choice(list(tollways.keys()))  
+    state = choice(list(tollways.keys()))
     name = choice(tollways[state])
     return state, name
 

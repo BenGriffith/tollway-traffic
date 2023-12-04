@@ -1,20 +1,34 @@
-import random
 import json
+import random
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from tollway.constants import TIMESTAMP_FORMAT
+from google.cloud import pubsub_v1
+
+from tollway.constants import (
+    DATE_VARIATION_MAX,
+    DATE_VARIATION_MIN,
+    PROJECT_ID,
+    TIMESTAMP_FORMAT,
+    TOPIC_ID,
+)
 
 
 def get_date_variation(timestamp: str) -> str:
-    random_integer = random.randint(1, 3)
+    random_integer = random.randint(DATE_VARIATION_MIN, DATE_VARIATION_MAX)
     current_timestamp = datetime.strptime(timestamp, TIMESTAMP_FORMAT)
     updated_timestamp = (current_timestamp - timedelta(days=random_integer)).strftime(TIMESTAMP_FORMAT)
     return updated_timestamp
 
 
-def push_to_topic():
-    pass # to be developed
+def get_topic():
+    publisher = pubsub_v1.PublisherClient()
+    topic_path = publisher.topic_path(project=PROJECT_ID, topic=TOPIC_ID)
+    return publisher, topic_path
+
+
+def encode_message(payload: dict) -> json:
+    return json.dumps(payload).encode("utf-8")
 
 
 def write_to_file(filename: str, events_log: list[dict]):
