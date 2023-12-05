@@ -54,14 +54,13 @@ def main(
         "all_events": [],
     }
 
-    if pubsub:
-        publisher, topic_path = get_topic()
-
-    if date_variation:
-        include_late = False
-        include_duplicate = False
+    publisher, topic_path = get_topic(pubsub=pubsub)
 
     for event_count in range(total_events):
+
+        # to control events_log["all_events"] logging
+        include_late_processed = False
+        include_duplicate_processed = False
 
         # create new event
         tollway = create_tollway(tollways=tollways)
@@ -74,6 +73,7 @@ def main(
 
         # LATE EVENTS
         if include_late:
+            events_log.get("past_events_timestamps").append(payload.get("timestamp"))
             if len(events_log.get("past_events_timestamps")) == INCLUDE_LATE_RATE:
                 events_log = process_late_event(
                     events_log=events_log,
@@ -82,25 +82,26 @@ def main(
                     publisher=publisher,
                     topic_path=topic_path,
                 )
-            events_log.get("past_events_timestamps").append(payload.get("timestamp"))
-            continue
+                include_late_processed = True
 
         # DUPLICATE EVENTS
         if include_duplicate:
+            events_log.get("past_events").append(payload)
             if len(events_log.get("past_events")) == INCLUDE_DUPLICATE_RATE:
                 events_log = process_duplicate_event(
                     events_log=events_log,
                     publisher=publisher,
                     topic_path=topic_path,
                 )
-            events_log.get("past_events").append(payload)
-            continue
+                include_duplicate_processed = True
 
         # captures all events except late and duplicate
         if pubsub:
             data = encode_message(payload=payload)
             future = publisher.publish(topic=topic_path, data=data)
-        events_log.get("all_events").append(payload)
+
+        if not include_late_processed and not include_duplicate_processed:
+            events_log.get("all_events").append(payload)
 
         if output_file and len(events_log.get("all_events")) == ALL_EVENTS_COUNT:
             write_to_file(filename=output_filename, events_log=events_log.get("all_events"))

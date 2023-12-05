@@ -21,10 +21,12 @@ def get_date_variation(timestamp: str) -> str:
     return updated_timestamp
 
 
-def get_topic():
-    publisher = pubsub_v1.PublisherClient()
-    topic_path = publisher.topic_path(project=PROJECT_ID, topic=TOPIC_ID)
-    return publisher, topic_path
+def get_topic(pubsub: bool) -> tuple:
+    if pubsub:
+        publisher = pubsub_v1.PublisherClient()
+        topic_path = publisher.topic_path(project=PROJECT_ID, topic=TOPIC_ID)
+        return publisher, topic_path
+    return None, None
 
 
 def encode_message(payload: dict) -> json:

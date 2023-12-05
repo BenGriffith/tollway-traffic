@@ -31,5 +31,6 @@ def behavior_callback(ctx: typer.Context, include_duplicate: bool):
     if date_variation:
         if include_late or include_duplicate:
             raise typer.BadParameter(
-                "when --date-variation is True --include-late and --include-duplicate must be False"
+                "when --date-variation is Enabled --include-late and --include-duplicate must be Disabled"
             )
+    return include_duplicate
