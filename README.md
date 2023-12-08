@@ -1,6 +1,6 @@
 ## General Info
 
-The purpose of Tollway Traffic is to simulate the generation of streaming data that can be used for learning purposes.
+The purpose of Tollway Traffic is to simulate the generation of streaming data that can be used for various/learning purposes.
 
 In the United States, when entering a tollway cameras will take a picture of each vehicle's license plate, and that information is used to identify the registered owner of the vehicle along with vehicle metadata such as make, model, year, category, color or VIN.
 
@@ -34,45 +34,91 @@ While streaming data sources can be extremely complex, I tried to include contro
 Please note: when `--date-variation` is enabled `--include-late` and `--include-duplicate` must be disabled.
 
 ## Installation
+1. Create virtual environment
 ```
-$ pip install tollway-traffic
+$ python -m virtualenv .venv
 ```
 
-## Setup
+2. Activate virtual environment
+```
+$ source .venv/bin/activate # Mac/Linux
+$ .venv\Scripts\activate # Windows
+```
+
+3. Install dependencies
+```
+$ pip install -r requirements.txt
+```
+
+4. (Optional) Copy .env-template
+```
+$ cp .env-template .env
+```
+
+5. (Optional) Configure environment variables in `.env`
+
+Five environment variables are already defined but they can be changed. `DATE_VARIATION_RATE`, `DATE_VARIATION_MIN` and `DATE_VARIATION_MAX` are implemented when `--date-variation` option is enabled. Similarly, `INCLUDE_LATE_RATE` is in use when `--include-late` is enabled and `INCLUDE_DUPLICATE_RATE` is applied when `--include-duplicate` is enabled.
+
+- `DATE_VARIATION_RATE` controls how often events with older dates are generated.
+- `DATE_VARIATION_MIN` and `DATE_VARIATION_MAX` are used to define range of integers that will be randomly selected from. The selected integer is then used to create a date in the past.
+- `INCLUDE_LATE_RATE` controls the late event generation rate so, for example, for every 20 events one late event will be generated.
+- `INCLUDE_DUPLICATE_RATE` controls the duplicate event generation rate so, for example, for every 50 events one duplicate event will be generated.
+- `ALL_EVENTS_COUNT` is used to track events generated/for logging purposes.
+
+6. (Optional) Enable pubsub functionality
+
+To leverage delivery of events to pubsub as-is, the following pre-requisites are needed:
+
+- Google Cloud Project
+- Create service account for pubsub
+    - Download service account key
+    - Change filename to `pubsub.json` or easy to use
+    - Move file to `service_account/` directory
+- Terraform installed [follow link](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
+
+Next, provide values for the following environment variables:
+
+- `PROJECT_ID` - Google Cloud Project ID
+- `TOPIC_ID` - Name of pubsub topic
+- `PUBSUB_SERVICE_ACCOUNT` - Path to pubsub service account key such as `/service_account/pubsub.json`
+- `GOOGLE_REGION` - Name of Google Geographical Region
+
+
+[ADD MAKEFILE and REVIEW Installation steps]
 
 
 ## Running
 For usage and options/parameters detail
 ```
-$ python -m tollway --help
+$ python3 -m tollway --help
 ```
 
 Using `--total-events` generate 100 events
 ```
-$ python -m tollway --total-events 100
+$ python3 -m tollway --total-events 100
 ```
 
 Using `--total-events` and `--event-rate` generate 500 events at a rate of 50 milliseconds
 ```
-$ python -m tollway --total-events 500 --event-rate 0.05
+$ python3 -m tollway --total-events 500 --event-rate 0.05
 ```
 
 Using `--total-events` and `--output-file` generate 250 events and log each event to a local file
 ```
-$ python -m tollway --total-events 250 --output-file
+$ python3 -m tollway --total-events 250 --output-file
 ```
 
 Using `--total-events` generate 10,000 events and enable `--date-variation`
 ```
-$ python -m tollway --total-events 10000 --date-variation
+$ python3 -m tollway --total-events 10000 --date-variation
 ```
 
 Using `--total-events` generate 20,000 events and enable `--include-late` along with `--include-duplicate`
 ```
-$ python -m tollway --total-events 20000 --include-late --include-duplicate
+$ python3 -m tollway --total-events 20000 --include-late --include-duplicate
 ```
 
 To enable `--pubsub`
 ```
-$ python -m tollway --total-events 100 --pubsub
+$ python3 -m tollway --total-events 100 --pubsub
 ```
