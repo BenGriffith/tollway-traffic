@@ -67,25 +67,32 @@ Five environment variables are already defined but they can be changed. `DATE_VA
 
 6. (Optional) Enable pubsub functionality
 
-To leverage delivery of events to pubsub as-is, the following pre-requisites are needed:
+To allow for the delivery of events to pubsub, please complete the following:
 
-- Google Cloud Project
-- Create service account for pubsub
-    - Download service account key
-    - Change filename to `pubsub.json` or easy to use
-    - Move file to `service_account/` directory
-- Terraform installed [follow link](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
+- Set up a Google Cloud Project
+- Within your Google Cloud Project, create a service account for pubsub
+    - Download the service account key
+    - Change the filename to something easy to use such as `pubsub.json`
+    - Move `pubsub.json` to the `service_account/` directory
+- Install Terraform (please [follow this link](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) for reference)
 
-Next, provide values for the following environment variables:
+Terraform is used to handle the creation/deletion of Google Cloud resources. To review the simple setup, please navigate to `/terraform` where you will find two files `main.tf` and `variable.tf`.
+
+Next, please provide values for the following environment variables:
 
 - `PROJECT_ID` - Google Cloud Project ID
-- `TOPIC_ID` - Name of pubsub topic
+- `TOPIC_ID` - pubsub topic name
 - `PUBSUB_SERVICE_ACCOUNT` - Path to pubsub service account key such as `/service_account/pubsub.json`
 - `GOOGLE_REGION` - Name of Google Geographical Region
 
+Last, leverage Terraform setup commands in `Makefile`:
 
-[ADD MAKEFILE and REVIEW Installation steps]
-
+```
+$ make tf-init        # initialize the working directory
+$ make infra-up-plan  # creates an execution plan allowing you to preview the changes
+$ make infra-up       # executes the actions proposed in the execution plan
+$ make infra-down     # destroys all remote objects managed by a particular configuration
+```
 
 ## Running
 For usage and options/parameters detail
