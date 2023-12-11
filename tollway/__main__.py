@@ -103,8 +103,9 @@ def main(
         if not include_late_processed and not include_duplicate_processed:
             events_log.get("all_events").append(payload)
 
-        if output_file and len(events_log.get("all_events")) == ALL_EVENTS_COUNT:
-            write_to_file(filename=output_filename, events_log=events_log.get("all_events"))
+        if len(events_log.get("all_events")) == ALL_EVENTS_COUNT:
+            if output_file:
+                write_to_file(filename=output_filename, events_log=events_log.get("all_events"))
             events_log["all_events"] = []
 
         time.sleep(event_rate)
