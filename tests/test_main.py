@@ -10,19 +10,19 @@ runner = CliRunner()
     "test_input, expected",
     [
         (["--total-events", 10, "--event-rate", 0.01], 0),
-        (["--total-events", "ten"], 2),  # invalid type
-        (["--total-events", -10], 2),  # callback
-        (["--event-rate", -1], 2),  # callback
-        (["--output-file", "True"], 2),  # invalid type
-        (["--output-filename", "invalid-format.csv"], 2),  # invalid format
-        (["--output-filename", "invalid-format.jsn"], 2),  # invalid format
-        (["--date-variation", "--include-late", "--include-duplicate"], 2),  # invalid combination
-        (["--date-variation", "--include-late"], 2),  # invalid combination
-        (["--date-variation", "--include-duplicate"], 2),  # invalid combination
+        pytest.param(["--total-events", "ten"], 2, id="total_events_invalid_type"),
+        pytest.param(["--total-events", -10], 2, id="total_events_callback"),
+        pytest.param(["--event-rate", -1], 2, id="event_rate_callback"),
+        pytest.param(["--output-file", "True"], 2, id="output_file_invalid_type"),
+        pytest.param(["--output-filename", "invalid-format.csv"], 2, id="output_filename_invalid_csv"),
+        pytest.param(["--output-filename", "invalid-format.jsn"], 2, id="output_filename_invalide_json"),
+        pytest.param(["--date-variation", "--include-late", "--include-duplicate"], 2, id="date_variation_invalid_combo"),
+        pytest.param(["--date-variation", "--include-late"], 2, id="date_variation_late_combo"),
+        pytest.param(["--date-variation", "--include-duplicate"], 2, id="date_variation_duplicate_combo"),
         (["--date-variation"], 0),
         (["--include-late"], 0),
         (["--include-duplicate"], 0),
-        (["--include-late", "--include-duplicate"], 0),  # valid combination
+        pytest.param(["--include-late", "--include-duplicate"], 0, id="valid_combination"),
     ],
 )
 def test_app_inputs(test_input, expected):
