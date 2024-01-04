@@ -2,16 +2,19 @@ import json
 import random
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import TypedDict
 
+from decouple import config
 from google.cloud import pubsub_v1
+from google.pubsub_v1 import PubsubMessage
 
-from tollway.constants import (
-    DATE_VARIATION_MAX,
-    DATE_VARIATION_MIN,
-    PROJECT_ID,
-    TIMESTAMP_FORMAT,
-    TOPIC_ID,
-)
+from tollway.constants import DATE_VARIATION_MAX, DATE_VARIATION_MIN, TIMESTAMP_FORMAT
+
+
+class EventsLog(TypedDict):
+    past_events_timestamps: list[str]
+    past_events: list[dict[str, str]]
+    all_events: list[dict[str, str]]
 
 
 def get_date_variation(timestamp: str) -> str:
@@ -21,14 +24,18 @@ def get_date_variation(timestamp: str) -> str:
     return updated_timestamp
 
 
-def get_topic():
-    publisher = pubsub_v1.PublisherClient()
-    topic_path = publisher.topic_path(project=PROJECT_ID, topic=TOPIC_ID)
-    return publisher, topic_path
+def get_topic(pubsub: bool) -> tuple:
+    if pubsub:
+        project_id = config("PROJECT_ID")
+        topic_id = config("TOPIC_ID")
+        publisher = pubsub_v1.PublisherClient()
+        topic_path = publisher.topic_path(project=project_id, topic=topic_id)
+        return publisher, topic_path
+    return None, None
 
 
-def encode_message(payload: dict) -> json:
-    return json.dumps(payload).encode("utf-8")
+def encode_message(payload: dict) -> PubsubMessage:
+    return PubsubMessage(json.dumps(payload).encode("utf-8"))
 
 
 def write_to_file(filename: str, events_log: list[dict]):
