@@ -4,3 +4,6 @@ pre-commit
 faker
 google-cloud-pubsub
 python-decouple
+mypy
+types-requests
+types-beautifulsoup4

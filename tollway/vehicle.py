@@ -23,7 +23,7 @@ def create_vehicle(fake: Faker) -> dict:
     return vehicle
 
 
-def get_tollways(html: Optional[str] = None) -> dict:
+def get_tollways(html: Optional[requests.Response] = None) -> dict:
     if html is None:
         html = requests.get(TOLLWAYS_URL)
 
@@ -41,11 +41,7 @@ def get_tollways(html: Optional[str] = None) -> dict:
         for sibling in h2.find_next_siblings():
             if sibling.name == "table":
                 tolls.extend(
-                    [
-                        unicodedata.normalize("NFKD", td.text.strip())
-                        for tr in sibling.find_all("tr")
-                        if (td := tr.find("td")) is not None
-                    ]
+                    [unicodedata.normalize("NFKD", td.text.strip()) for tr in sibling.find_all("tr") if (td := tr.find("td")) is not None]
                 )
             # don't include tables after the next h2
             if sibling.name == "h2":
@@ -53,7 +49,7 @@ def get_tollways(html: Optional[str] = None) -> dict:
 
         tables.append(tolls)
 
-    united_states_tollways = dict((state, tolls) for state, tolls in zip(states, tables) if tolls)
+    united_states_tollways = {state: tolls for state, tolls in zip(states, tables) if tolls}
     return united_states_tollways
 
 
@@ -64,10 +60,10 @@ def create_tollway(tollways: dict) -> tuple[str, str]:
 
 
 def create_payload(vehicle: dict[str, str], tollway: tuple[str, str]) -> dict[str, str]:
-    tollway = {
+    state_tollway = {
         "tollway_state": tollway[0],
         "tollway_name": tollway[1],
     }
-    vehicle.update(tollway)
+    vehicle.update(state_tollway)
     vehicle["timestamp"] = datetime.now(tz=timezone.utc).strftime(TIMESTAMP_FORMAT)
     return vehicle

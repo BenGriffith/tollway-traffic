@@ -22,6 +22,8 @@ idna==3.4
 importlib-metadata==6.8.0
 iniconfig==2.0.0
 jellyfish==0.11.2
+mypy==1.8.0
+mypy-extensions==1.0.0
 nodeenv==1.8.0
 packaging==23.2
 pip-tools==7.3.0
@@ -43,6 +45,9 @@ six==1.16.0
 soupsieve==2.5
 tomli==2.0.1
 typer==0.9.0
+types-beautifulsoup4==4.12.0.7
+types-html5lib==1.1.11.15
+types-requests==2.31.0.10
 typing_extensions==4.8.0
 urllib3==2.0.7
 us==3.1.1

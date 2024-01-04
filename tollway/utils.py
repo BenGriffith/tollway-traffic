@@ -2,8 +2,10 @@ import json
 import random
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import TypedDict
 
 from google.cloud import pubsub_v1
+from google.pubsub_v1 import PubsubMessage
 
 from tollway.constants import (
     DATE_VARIATION_MAX,
@@ -12,6 +14,12 @@ from tollway.constants import (
     TIMESTAMP_FORMAT,
     TOPIC_ID,
 )
+
+
+class EventsLog(TypedDict):
+    past_events_timestamps: list[str]
+    past_events: list[dict[str, str]]
+    all_events: list[dict[str, str]]
 
 
 def get_date_variation(timestamp: str) -> str:
@@ -29,8 +37,8 @@ def get_topic(pubsub: bool) -> tuple:
     return None, None
 
 
-def encode_message(payload: dict) -> json:
-    return json.dumps(payload).encode("utf-8")
+def encode_message(payload: dict) -> PubsubMessage:
+    return PubsubMessage(json.dumps(payload).encode("utf-8"))
 
 
 def write_to_file(filename: str, events_log: list[dict]):

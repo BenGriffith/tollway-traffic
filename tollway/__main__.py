@@ -19,7 +19,13 @@ from tollway.constants import (
     Help,
 )
 from tollway.events import process_duplicate_event, process_late_event
-from tollway.utils import encode_message, get_date_variation, get_topic, write_to_file
+from tollway.utils import (
+    EventsLog,
+    encode_message,
+    get_date_variation,
+    get_topic,
+    write_to_file,
+)
 from tollway.vehicle import create_payload, create_tollway, create_vehicle, get_tollways
 
 app = typer.Typer()
@@ -30,25 +36,17 @@ fake.add_provider(VehicleProvider)
 
 @app.command()
 def main(
-    total_events: Annotated[
-        int, typer.Option(help=Help.TOTAL_EVENTS.value, callback=total_event_callback)
-    ] = 1,
-    event_rate: Annotated[
-        float, typer.Option(help=Help.EVENT_RATE.value, callback=event_rate_callback)
-    ] = 1.0,
+    total_events: Annotated[int, typer.Option(help=Help.TOTAL_EVENTS.value, callback=total_event_callback)] = 1,
+    event_rate: Annotated[float, typer.Option(help=Help.EVENT_RATE.value, callback=event_rate_callback)] = 1.0,
     output_file: Annotated[bool, typer.Option(help=Help.OUTPUT_FILE.value)] = False,
-    output_filename: Annotated[
-        str, typer.Option(help=Help.OUTPUT_FILENAME.value, callback=filename_callback)
-    ] = "tollway-traffic.json",
+    output_filename: Annotated[str, typer.Option(help=Help.OUTPUT_FILENAME.value, callback=filename_callback)] = "tollway-traffic.json",
     date_variation: Annotated[bool, typer.Option(help=Help.DATE_VARIATION.value)] = False,
     include_late: Annotated[bool, typer.Option(help=Help.INCLUDE_LATE.value)] = False,
-    include_duplicate: Annotated[
-        bool, typer.Option(help=Help.INCLUDE_DUPLICATE.value, callback=behavior_callback)
-    ] = False,
+    include_duplicate: Annotated[bool, typer.Option(help=Help.INCLUDE_DUPLICATE.value, callback=behavior_callback)] = False,
     pubsub: Annotated[bool, typer.Option(help=Help.PUBSUB.value)] = False,
 ):
 
-    events_log = {
+    events_log: EventsLog = {
         "past_events_timestamps": [],
         "past_events": [],
         "all_events": [],
@@ -69,12 +67,12 @@ def main(
 
         # DATE VARIATION
         if date_variation and event_count % DATE_VARIATION_RATE == 0:
-            payload["timestamp"] = get_date_variation(timestamp=payload.get("timestamp"))
+            payload["timestamp"] = get_date_variation(timestamp=payload["timestamp"])
 
         # LATE EVENTS
         if include_late:
-            events_log.get("past_events_timestamps").append(payload.get("timestamp"))
-            if len(events_log.get("past_events_timestamps")) == INCLUDE_LATE_RATE:
+            events_log["past_events_timestamps"].append(payload["timestamp"])
+            if len(events_log["past_events_timestamps"]) == INCLUDE_LATE_RATE:
                 events_log = process_late_event(
                     events_log=events_log,
                     fake=fake,
@@ -86,8 +84,8 @@ def main(
 
         # DUPLICATE EVENTS
         if include_duplicate:
-            events_log.get("past_events").append(payload)
-            if len(events_log.get("past_events")) == INCLUDE_DUPLICATE_RATE:
+            events_log["past_events"].append(payload)
+            if len(events_log["past_events"]) == INCLUDE_DUPLICATE_RATE:
                 events_log = process_duplicate_event(
                     events_log=events_log,
                     publisher=publisher,
@@ -101,19 +99,19 @@ def main(
             future = publisher.publish(topic=topic_path, data=data)
 
         if not include_late_processed and not include_duplicate_processed:
-            events_log.get("all_events").append(payload)
+            events_log["all_events"].append(payload)
 
-        if len(events_log.get("all_events")) == ALL_EVENTS_COUNT:
+        if len(events_log["all_events"]) == ALL_EVENTS_COUNT:
             if output_file:
-                write_to_file(filename=output_filename, events_log=events_log.get("all_events"))
+                write_to_file(filename=output_filename, events_log=events_log["all_events"])
             events_log["all_events"] = []
 
         time.sleep(event_rate)
 
     # when iterating stops, if any events events remain in events_log["all_events"]
     # they will be handled here
-    if output_file and len(events_log.get("all_events")) > 0:
-        write_to_file(filename=output_filename, events_log=events_log.get("all_events"))
+    if output_file and len(events_log["all_events"]) > 0:
+        write_to_file(filename=output_filename, events_log=events_log["all_events"])
 
 
 if __name__ == "__main__":
