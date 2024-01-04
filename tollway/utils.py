@@ -34,8 +34,8 @@ def get_topic(pubsub: bool) -> tuple:
     return None, None
 
 
-def encode_message(payload: dict) -> PubsubMessage:
-    return PubsubMessage(json.dumps(payload).encode("utf-8"))
+def encode_message(message: dict) -> PubsubMessage:
+    return PubsubMessage(json.dumps(message).encode("utf-8"))
 
 
 def write_to_file(filename: str, events_log: list[dict]):
