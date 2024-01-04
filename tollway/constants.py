@@ -13,8 +13,6 @@ DATE_VARIATION_MAX = config("DATE_VARIATION_MAX", default=3, cast=int)
 INCLUDE_LATE_RATE = config("INCLUDE_LATE_RATE", default=20, cast=int)
 INCLUDE_DUPLICATE_RATE = config("INCLUDE_DUPLICATE_RATE", default=50, cast=int)
 ALL_EVENTS_COUNT = config("ALL_EVENTS_COUNT", default=250, cast=int)
-PROJECT_ID = config("PROJECT_ID")
-TOPIC_ID = config("TOPIC_ID")
 FILE_SUFFIX = "json"
 
 
