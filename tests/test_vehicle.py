@@ -56,5 +56,5 @@ def test_create_tollway(tollways, get_tollway):
     assert name in tollways[state]
 
 
-def test_create_payload(payload):
-    assert len(payload) == 11
+def test_create_message(message):
+    assert len(message) == 11

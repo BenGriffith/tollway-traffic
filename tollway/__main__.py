@@ -26,7 +26,7 @@ from tollway.utils import (
     get_topic,
     write_to_file,
 )
-from tollway.vehicle import create_payload, create_tollway, create_vehicle, get_tollways
+from tollway.vehicle import create_message, create_tollway, create_vehicle, get_tollways
 
 app = typer.Typer()
 tollways = get_tollways()
@@ -63,15 +63,15 @@ def main(
         # create new event
         tollway = create_tollway(tollways=tollways)
         vehicle = create_vehicle(fake=fake)
-        payload = create_payload(vehicle=vehicle, tollway=tollway)
+        message = create_message(vehicle=vehicle, tollway=tollway)
 
         # DATE VARIATION
         if date_variation and event_count % DATE_VARIATION_RATE == 0:
-            payload["timestamp"] = get_date_variation(timestamp=payload["timestamp"])
+            message["timestamp"] = get_date_variation(timestamp=message["timestamp"])
 
         # LATE EVENTS
         if include_late:
-            events_log["past_events_timestamps"].append(payload["timestamp"])
+            events_log["past_events_timestamps"].append(message["timestamp"])
             if len(events_log["past_events_timestamps"]) == INCLUDE_LATE_RATE:
                 events_log = process_late_event(
                     events_log=events_log,
@@ -84,7 +84,7 @@ def main(
 
         # DUPLICATE EVENTS
         if include_duplicate:
-            events_log["past_events"].append(payload)
+            events_log["past_events"].append(message)
             if len(events_log["past_events"]) == INCLUDE_DUPLICATE_RATE:
                 events_log = process_duplicate_event(
                     events_log=events_log,
@@ -95,11 +95,11 @@ def main(
 
         # captures all events except late and duplicate
         if pubsub:
-            data = encode_message(payload=payload)
+            data = encode_message(message=message)
             future = publisher.publish(topic=topic_path, data=data)
 
         if not include_late_processed and not include_duplicate_processed:
-            events_log["all_events"].append(payload)
+            events_log["all_events"].append(message)
 
         if len(events_log["all_events"]) == ALL_EVENTS_COUNT:
             if output_file:
