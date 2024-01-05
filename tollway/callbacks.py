@@ -14,6 +14,8 @@ def total_event_callback(total_events: int):
 def event_rate_callback(event_rate: float):
     if event_rate <= 0:
         raise typer.BadParameter("--event-rate must be greater than 0")
+    if event_rate > 10:
+        raise typer.BadParameter("--event-rate must be less than 10")
     return event_rate
 
 
