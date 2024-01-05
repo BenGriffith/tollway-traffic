@@ -4,7 +4,7 @@ The purpose of Tollway Traffic is to simulate the generation of streaming data t
 
 In the United States, when entering a tollway cameras will take a picture of each vehicle's license plate, and that information is used to identify the registered owner of the vehicle along with vehicle metadata such as make, model, year.
 
-Tollway traffic generates a payload made up of the following properties:
+Tollway traffic generates a message made up of the following properties:
 
 - `year` - vehicle year
 - `make` - vehicle manufacturer (e.g. Toyota, Honda, BMW)
@@ -18,7 +18,7 @@ Tollway traffic generates a payload made up of the following properties:
 - `tollway_name` - name of the tollway
 - `timestamp` - timestamp for when vehicle entered tollway
 
-Each payload is meant to represent an event of the process defined earlier. `Faker` is used to generate vehicle information while a web scraper is used to fetch names of tollways in each state/territory within the United States.
+Each message is meant to represent an event of the process defined earlier. `Faker` is used to generate vehicle information while a web scraper is used to fetch names of tollways in each state/territory within the United States.
 
 While streaming sources can be complex, I tried to include a few basic features:
 
