@@ -6,23 +6,20 @@ from faker_vehicle import VehicleProvider
 from typing_extensions import Annotated
 
 from tollway.callbacks import (
-    behavior_callback,
     event_rate_callback,
     filename_callback,
     total_event_callback,
 )
 from tollway.constants import (
     ALL_EVENTS_COUNT,
-    DATE_VARIATION_RATE,
-    INCLUDE_DUPLICATE_RATE,
-    INCLUDE_LATE_RATE,
+    LATE_EVENT_RATE,
+    DUPLICATE_RATE,
     Help,
 )
 from tollway.events import process_duplicate_event, process_late_event
 from tollway.utils import (
     EventsLog,
     encode_message,
-    get_date_variation,
     get_topic,
     write_to_file,
 )
@@ -40,14 +37,17 @@ def main(
     event_rate: Annotated[float, typer.Option(help=Help.EVENT_RATE.value, callback=event_rate_callback)] = 1.0,
     output_file: Annotated[bool, typer.Option(help=Help.OUTPUT_FILE.value)] = False,
     output_filename: Annotated[str, typer.Option(help=Help.OUTPUT_FILENAME.value, callback=filename_callback)] = "tollway-traffic.json",
-    date_variation: Annotated[bool, typer.Option(help=Help.DATE_VARIATION.value)] = False,
-    include_late: Annotated[bool, typer.Option(help=Help.INCLUDE_LATE.value)] = False,
-    include_duplicate: Annotated[bool, typer.Option(help=Help.INCLUDE_DUPLICATE.value, callback=behavior_callback)] = False,
+    include_late_seconds: Annotated[bool, typer.Option(help=Help.INCLUDE_LATE_SEC.value)] = False,
+    include_late_minutes: Annotated[bool, typer.Option(help=Help.INCLUDE_LATE_MIN.value)] = False,
+    include_duplicate: Annotated[bool, typer.Option(help=Help.INCLUDE_DUPLICATE.value)] = False,
     pubsub: Annotated[bool, typer.Option(help=Help.PUBSUB.value)] = False,
 ):
 
     events_log: EventsLog = {
-        "past_events_timestamps": [],
+        "late_events": {
+            "seconds": [],
+            "minutes": [],
+        },
         "past_events": [],
         "all_events": [],
     }
@@ -65,27 +65,32 @@ def main(
         vehicle = create_vehicle(fake=fake)
         message = create_message(vehicle=vehicle, tollway=tollway)
 
-        # DATE VARIATION
-        if date_variation and event_count % DATE_VARIATION_RATE == 0:
-            message["timestamp"] = get_date_variation(timestamp=message["timestamp"])
+        print(message)
 
         # LATE EVENTS
-        if include_late:
-            events_log["past_events_timestamps"].append(message["timestamp"])
-            if len(events_log["past_events_timestamps"]) == INCLUDE_LATE_RATE:
-                events_log = process_late_event(
-                    events_log=events_log,
-                    fake=fake,
-                    tollways=tollways,
-                    publisher=publisher,
-                    topic_path=topic_path,
-                )
-                include_late_processed = True
+        if include_late_seconds:
+            events_log["late_events"]["seconds"].append(message["timestamp"])
+
+        if include_late_minutes:
+            events_log["late_events"]["minutes"].append(message["timestamp"])
+
+        if include_late_seconds or include_late_minutes:
+            for time_unit, late_events in events_log["late_events"].items():
+                if len(late_events) == LATE_EVENT_RATE[time_unit]:
+                    events_log = process_late_event(
+                        events_log=events_log,
+                        fake=fake,
+                        tollways=tollways,
+                        publisher=publisher,
+                        topic_path=topic_path,
+                        time_unit=time_unit,
+                    )
+                    include_late_processed = True
 
         # DUPLICATE EVENTS
         if include_duplicate:
             events_log["past_events"].append(message)
-            if len(events_log["past_events"]) == INCLUDE_DUPLICATE_RATE:
+            if len(events_log["past_events"]) == DUPLICATE_RATE:
                 events_log = process_duplicate_event(
                     events_log=events_log,
                     publisher=publisher,
