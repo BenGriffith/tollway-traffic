@@ -17,13 +17,9 @@ runner = CliRunner()
         pytest.param(["--output-file", "True"], 2, id="fail_output_file_type"),
         pytest.param(["--output-filename", "invalid-format.csv"], 2, id="fail_output_filename_csv"),
         pytest.param(["--output-filename", "invalid-format.jsn"], 2, id="fail_output_filename_json"),
-        pytest.param(["--date-variation", "--include-late", "--include-duplicate"], 2, id="fail_date_variation"),
-        pytest.param(["--date-variation", "--include-late"], 2, id="fail_date_variation_include_late"),
-        pytest.param(["--date-variation", "--include-duplicate"], 2, id="fail_date_variation_include_duplicate"),
-        pytest.param(["--date-variation"], 0, id="pass_date_variation"),
-        pytest.param(["--include-late"], 0, id="pass_include_late"),
-        pytest.param(["--include-duplicate"], 0, id="pass_include_duplicate"),
-        pytest.param(["--include-late", "--include-duplicate"], 0, id="pass_include_late_include_duplicate"),
+        pytest.param(["--total-events", 50, "--event-rate", 0.2, "--include-late-seconds"], 0, id="pass_include_late_seconds"),
+        pytest.param(["--total-events", 100, "--event-rate", 0.01, "--include-late-minutes"], 0, id="pass_include_late_minutes"),
+        pytest.param(["--total-events", 100, "--event-rate", 0.3, "--include-late-seconds", "--include-late-minutes"], 0, id="pass_include_late_seconds_minutes"),
     ],
 )
 def test_app_inputs(test_input, expected):
