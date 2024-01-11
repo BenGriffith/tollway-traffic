@@ -1,11 +1,20 @@
+from datetime import datetime
+
+from tollway.constants import TIME_UNIT, TIMESTAMP_FORMAT
 from tollway.events import create_duplicate_event, create_late_event
 
 
-def test_create_late_event(past_events_timestamps, setup, tollways):
-    late_event = create_late_event(
-        events_log=past_events_timestamps, fake=setup.get("faker"), tollways=tollways
+def test_create_late_event_seconds(late_events, setup, tollways):
+    late_event_ts = create_late_event(
+        events_log=late_events, fake=setup.get("faker"), tollways=tollways, time_unit="seconds"
     )
-    assert late_event.get("timestamp") in past_events_timestamps.get("past_events_timestamps")
+
+    late_event_ts = datetime.strptime(late_event_ts["timestamp"], TIMESTAMP_FORMAT)
+    for ts in late_events["late_events"]["seconds"]:
+        current_event_ts = datetime.strptime(ts, TIMESTAMP_FORMAT)
+        if late_event_ts.microsecond == current_event_ts.microsecond:
+            difference_in_seconds = abs(current_event_ts - late_event_ts)
+            assert TIME_UNIT["seconds"]["min"] <= difference_in_seconds.seconds <= TIME_UNIT["seconds"]["max"]
 
 
 def test_create_duplicate_event(past_events):
