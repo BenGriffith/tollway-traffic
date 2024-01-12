@@ -40,7 +40,7 @@ def message(vehicle, get_tollway):
     return create_message(vehicle=vehicle, tollway=get_tollway)
 
 
-@pytest.fixture()
+@pytest.fixture
 def messages(setup, get_tollway):
     _messages = []
     for _ in range(30):
@@ -52,12 +52,29 @@ def messages(setup, get_tollway):
 
 
 @pytest.fixture
-def past_events_timestamps(messages):
-    events_log = {"past_events_timestamps": [message.get("timestamp") for message in messages]}
+def events_log():
+    events_log = {
+        "late_events": {
+            "seconds": [],
+            "minutes": [],
+            "hours": [],
+        },
+        "past_events": [],
+        "all_events": [],
+    }
     return events_log
 
 
 @pytest.fixture
-def past_events(messages):
-    events_log = {"past_events": messages}
+def late_events(messages, events_log):
+    late_events_messages = [message.get("timestamp") for message in messages]
+    events_log["late_events"]["seconds"] = late_events_messages
+    events_log["late_events"]["minutes"] = late_events_messages
+    events_log["late_events"]["hours"] = late_events_messages
+    return events_log
+
+
+@pytest.fixture
+def past_events(messages, events_log):
+    events_log["past_events"] = messages
     return events_log

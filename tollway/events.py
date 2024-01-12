@@ -4,9 +4,9 @@ from datetime import datetime, timedelta
 from faker import Faker
 from google.pubsub_v1 import PublisherClient, Topic
 
+from tollway.constants import TIME_UNIT, TIMESTAMP_FORMAT
 from tollway.utils import EventsLog, encode_message
 from tollway.vehicle import create_message, create_tollway, create_vehicle
-from tollway.constants import TIME_UNIT, TIMESTAMP_FORMAT
 
 
 def _calculate_late_timestamp(time_unit: str, ts: str) -> str:
@@ -47,7 +47,9 @@ def create_duplicate_event(events_log: EventsLog) -> dict[str, str]:
     return duplicate_event
 
 
-def process_duplicate_event(events_log: EventsLog, publisher: PublisherClient, topic_path: Topic) -> EventsLog:
+def process_duplicate_event(
+    events_log: EventsLog, publisher: PublisherClient, topic_path: Topic
+) -> EventsLog:
     duplicate_event = create_duplicate_event(events_log)
     if publisher and topic_path:
         data = encode_message(message=duplicate_event)
