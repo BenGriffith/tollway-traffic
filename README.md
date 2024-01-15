@@ -24,8 +24,7 @@ While streaming sources can be complex, I tried to include a few basic features:
 
 1. Creation of late events
 2. Creation of duplicate events
-3. Creation of events that occur *n* days in the past (*n* is defined as *random.randint(min, max)*)
-4. Basic Pub/Sub functionality so that events can be delivered to a Pub/Sub topic (please see installation steps below)
+3. Basic Pub/Sub functionality so that events can be delivered to a Pub/Sub topic (please see installation steps below)
 
 Here is a list of the parameters and a high-level description of each one:
 
@@ -33,12 +32,13 @@ Here is a list of the parameters and a high-level description of each one:
 - `--event-rate` - rate at which events are created
 - `--output-file` - write events to a local file/log
 - `--output-filename` - provide your own JSON filename
-- `--date-variation` - "mini-batch" of events with noticeably different dates created in a short period of time
-- `--include-late` - create late events
+- `--include-late-seconds` - create events that are seconds late
+- `--include-late-minutes` - create events that are minutes late
+- `--include-late-hours` - create events that are hours late
+- `--include-late-days` - create events that are days late
 - `--include-duplicate` - create duplicate events
 - `--pubsub` - push events to pubsub topic
 
-Please note: when `--date-variation` is enabled `--include-late` and `--include-duplicate` must be disabled.
 
 ## Installation
 1. Create virtual environment
@@ -64,13 +64,14 @@ $ cp .env-template .env
 
 5. (Optional) Configure environment variables in `.env`
 
-Five environment variables are already defined but they can be changed. `DATE_VARIATION_RATE`, `DATE_VARIATION_MIN` and `DATE_VARIATION_MAX` are implemented when `--date-variation` option is enabled. Similarly, `INCLUDE_LATE_RATE` is in use when `--include-late` is enabled and `INCLUDE_DUPLICATE_RATE` is applied when `--include-duplicate` is enabled.
+In the `constants` module, default values are provided for `LATE_SECONDS_RATE`, `LATE_MINUTES_RATE`, `LATE_HOURS_RATE`, `LATE_DAYS_RATE`, `INCLUDE_DUPLICATE_RATE`, and `ALL_EVENTS_COUNT`. If you would like to override these values, you can do so using `.env`. For example, `LATE_SECONDS_RATE` has a default value of 10. If you wanted to change this value to 20, then head over to `.env` and update `LATE_SECONDS_RATE` to 20 so `LATE_SECONDS_RATE=20`. Below is a brief description for these environment variables:
 
-- `DATE_VARIATION_RATE` controls the *n* days ago event generation rate. Again, *n* is defined taken from *random.randint(min, max)*.
-- `DATE_VARIATION_MIN` and `DATE_VARIATION_MAX` are used to define range of integers that will be randomly selected from.
-- `INCLUDE_LATE_RATE` controls the late event generation rate so, for example, for every 20 events one late event will be generated.
-- `INCLUDE_DUPLICATE_RATE` controls the duplicate event generation rate so, for example, for every 50 events one duplicate event will be generated.
-- `ALL_EVENTS_COUNT` is used to track events generated/for logging purposes.
+- `LATE_SECONDS_RATE` controls the seconds-late event generation rate so for every *n* events one seconds-late event will be created. Default value is 10.
+- `LATE_MINUTES_RATE` controls the minutes-late event generation rate so for every *n* events one minutes-late event will be created. Default value is 20.
+- `LATE_HOURS_RATE` controls the hours-late event generation rate so for every *n* events one hours-late event will be created. Default value is 30.
+- `LATE_DAYS_RATE` controls the days-late event generation rate so for every *n* events one days-late event will be created. Default value is 100.
+- `INCLUDE_DUPLICATE_RATE` controls the duplicate event generation rate so for every *n* events one duplicate event will be created. Default value is 50.
+- `ALL_EVENTS_COUNT` is used to track events generated/for logging purposes. Default value is 250.
 
 6. (Optional) Enable pubsub functionality
 
@@ -123,14 +124,19 @@ Using `--total-events` and `--output-file` generate 250 events and log each even
 $ python3 -m tollway --total-events 250 --output-file
 ```
 
-Using `--total-events` generate 10,000 events and enable `--date-variation`
+Using `--total-events` generate 10,000 events and enable `--include-late-seconds`
 ```
-$ python3 -m tollway --total-events 10000 --date-variation
+$ python3 -m tollway --total-events 10000 --include-late-seconds
 ```
 
-Using `--total-events` generate 20,000 events and enable `--include-late` along with `--include-duplicate`
+Using `--total-events` generate 20,000 events and enable `--include-late-minutes` along with `--include-duplicate`
 ```
-$ python3 -m tollway --total-events 20000 --include-late --include-duplicate
+$ python3 -m tollway --total-events 20000 --include-late-minutes --include-duplicate
+```
+
+Using `--total-events` generate 1,000 events and enable `--include-late-seconds`, `--include-late-minutes`, `--include-late-hours`, and `--include-late-days`
+```
+$ python3 -m tollway --total-events 1000 --include-late-seconds --include-late-minutes --include-late-hours --include-late-days
 ```
 
 To enable `--pubsub`

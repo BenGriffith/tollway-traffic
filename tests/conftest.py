@@ -58,6 +58,7 @@ def events_log():
             "seconds": [],
             "minutes": [],
             "hours": [],
+            "days": [],
         },
         "past_events": [],
         "all_events": [],
@@ -71,6 +72,7 @@ def late_events(messages, events_log):
     events_log["late_events"]["seconds"] = late_events_messages
     events_log["late_events"]["minutes"] = late_events_messages
     events_log["late_events"]["hours"] = late_events_messages
+    events_log["late_events"]["days"] = late_events_messages
     return events_log
 
 

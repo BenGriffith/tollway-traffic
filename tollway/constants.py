@@ -21,6 +21,7 @@ class Help(Enum):
     INCLUDE_LATE_SECONDS = "generate late events by seconds"
     INCLUDE_LATE_MINUTES = "generate late events by minutes"
     INCLUDE_LATE_HOURS = "generate late events by hours"
+    INCLUDE_LATE_DAYS = "generate late events by days"
     INCLUDE_DUPLICATE = "generate duplicate events"
     PUBSUB = "enable PubSub functionality"
 
@@ -29,6 +30,7 @@ LATE_EVENT_RATE = {
     "seconds": config("LATE_SECONDS_RATE", default=10, cast=int),
     "minutes": config("LATE_MINUTES_RATE", default=20, cast=int),
     "hours": config("LATE_HOURS_RATE", default=30, cast=int),
+    "days": config("LATE_DAYS_RATE", default=100, cast=int),
 }
 
 
@@ -36,4 +38,5 @@ TIME_UNIT = {
     "seconds": {"min": 5, "max": 30},
     "minutes": {"min": 1, "max": 59},
     "hours": {"min": 1, "max": 23},
+    "days": {"min": 1, "max": 5},
 }

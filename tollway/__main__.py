@@ -36,6 +36,7 @@ def main(
     include_late_seconds: Annotated[bool, typer.Option(help=Help.INCLUDE_LATE_SECONDS.value)] = False,
     include_late_minutes: Annotated[bool, typer.Option(help=Help.INCLUDE_LATE_MINUTES.value)] = False,
     include_late_hours: Annotated[bool, typer.Option(help=Help.INCLUDE_LATE_HOURS.value)] = False,
+    include_late_days: Annotated[bool, typer.Option(help=Help.INCLUDE_LATE_DAYS.value)] = False,
     include_duplicate: Annotated[bool, typer.Option(help=Help.INCLUDE_DUPLICATE.value)] = False,
     pubsub: Annotated[bool, typer.Option(help=Help.PUBSUB.value)] = False,
 ):
@@ -45,6 +46,7 @@ def main(
             "seconds": [],
             "minutes": [],
             "hours": [],
+            "days": [],
         },
         "past_events": [],
         "all_events": [],
@@ -73,7 +75,10 @@ def main(
         if include_late_hours:
             events_log["late_events"]["hours"].append(message["timestamp"])
 
-        if include_late_seconds or include_late_minutes or include_late_hours:
+        if include_late_days:
+            events_log["late_events"]["days"].append(message["timestamp"])
+
+        if include_late_seconds or include_late_minutes or include_late_hours or include_late_days:
             for time_unit, late_events in events_log["late_events"].items():
                 if len(late_events) == LATE_EVENT_RATE[time_unit]:
                     events_log = process_late_event(

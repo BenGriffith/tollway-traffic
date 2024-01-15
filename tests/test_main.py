@@ -17,9 +17,45 @@ runner = CliRunner()
         pytest.param(["--output-file", "True"], 2, id="fail_output_file_type"),
         pytest.param(["--output-filename", "invalid-format.csv"], 2, id="fail_output_filename_csv"),
         pytest.param(["--output-filename", "invalid-format.jsn"], 2, id="fail_output_filename_json"),
-        pytest.param(["--total-events", 50, "--event-rate", 0.2, "--include-late-seconds"], 0, id="pass_include_late_seconds"),
-        pytest.param(["--total-events", 100, "--event-rate", 0.01, "--include-late-minutes"], 0, id="pass_include_late_minutes"),
-        pytest.param(["--total-events", 100, "--event-rate", 0.3, "--include-late-seconds", "--include-late-minutes"], 0, id="pass_include_late_seconds_minutes"),
+        pytest.param(
+            ["--total-events", 50, "--event-rate", 0.1, "--include-late-seconds"],
+            0,
+            id="pass_include_late_seconds",
+        ),
+        pytest.param(
+            ["--total-events", 100, "--event-rate", 0.1, "--include-late-minutes"],
+            0,
+            id="pass_include_late_minutes",
+        ),
+        pytest.param(
+            ["--total-events", 100, "--event-rate", 0.1, "--include-late-seconds", "--include-late-minutes"],
+            0,
+            id="pass_include_late_seconds_minutes",
+        ),
+        pytest.param(
+            ["--total-events", 100, "--event-rate", 0.1, "--include-late-hours"],
+            0,
+            id="pass_include_late_hours",
+        ),
+        pytest.param(
+            ["--total-events", 100, "--event-rate", 0.1, "--include-late-days"],
+            0,
+            id="pass_include_late_days",
+        ),
+        pytest.param(
+            [
+                "--total-events",
+                100,
+                "--event-rate",
+                0.1,
+                "--include-late-seconds",
+                "--include-late-minutes",
+                "--include-late-hours",
+                "--include-late-days",
+            ],
+            0,
+            id="pass_include_late_all",
+        ),
     ],
 )
 def test_app_inputs(test_input, expected):
