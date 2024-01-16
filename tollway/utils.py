@@ -2,9 +2,10 @@ import json
 from pathlib import Path
 from typing import TypedDict
 
-from decouple import config
 from google.cloud import pubsub_v1
 from google.pubsub_v1 import PubsubMessage
+
+from tollway.constants import PROJECT_ID, TOPIC_ID
 
 
 class EventsLog(TypedDict):
@@ -15,8 +16,8 @@ class EventsLog(TypedDict):
 
 def get_topic(pubsub: bool) -> tuple:
     if pubsub:
-        project_id = config("PROJECT_ID")
-        topic_id = config("TOPIC_ID")
+        project_id = PROJECT_ID
+        topic_id = TOPIC_ID
         publisher = pubsub_v1.PublisherClient()
         topic_path = publisher.topic_path(project=project_id, topic=topic_id)
         return publisher, topic_path
