@@ -85,3 +85,10 @@ def test_pubsub_no_topic():
     result = runner.invoke(app, test_input)
     assert result.exit_code == 2
     assert "Please define TOPIC_ID in .env" in result.output
+
+
+def test_filename_output_file_disabled():
+    test_input = ["--total-events", 10, "--event-rate", 0.1, "--output-filename", "myfile.json"]
+    result = runner.invoke(app, test_input)
+    assert result.exit_code == 2
+    assert "--output-file must be enabled" in result.output
