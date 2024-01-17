@@ -2,7 +2,7 @@ from pathlib import Path
 
 import typer
 
-from tollway.constants import FILE_SUFFIX
+from tollway.constants import FILE_SUFFIX, PROJECT_ID, TOPIC_ID
 
 
 def total_event_callback(total_events: int):
@@ -24,3 +24,11 @@ def filename_callback(filename: str):
     if FILE_SUFFIX not in path.suffix:
         raise typer.BadParameter("--output-filename must use json format")
     return filename
+
+
+def pubsub_callback(value):
+    if value and PROJECT_ID is None:
+        raise typer.BadParameter("Please define PROJECT_ID in .env")
+    if value and TOPIC_ID is None:
+        raise typer.BadParameter("Please define TOPIC_ID in .env")
+    return value

@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from typer.testing import CliRunner
 
@@ -15,8 +17,6 @@ runner = CliRunner()
         pytest.param(["--event-rate", -1], 2, id="fail_event_rate_lt_min"),
         pytest.param(["--event-rate", 20], 2, id="fail_event_rate_gt_max"),
         pytest.param(["--output-file", "True"], 2, id="fail_output_file_type"),
-        pytest.param(["--output-filename", "invalid-format.csv"], 2, id="fail_output_filename_csv"),
-        pytest.param(["--output-filename", "invalid-format.jsn"], 2, id="fail_output_filename_json"),
         pytest.param(
             ["--total-events", 50, "--event-rate", 0.1, "--include-late-seconds"],
             0,
@@ -61,3 +61,27 @@ runner = CliRunner()
 def test_app_inputs(test_input, expected):
     result = runner.invoke(app, test_input)
     assert result.exit_code == expected
+
+
+def test_output_file_format():
+    test_input = ["--output-filename", "invalid-format.csv"]
+    result = runner.invoke(app, test_input)
+    assert result.exit_code == 2
+    assert "--output-filename must use json format" in result.output
+
+
+@patch("tollway.callbacks.PROJECT_ID", None)
+def test_pubsub_no_project():
+    test_input = ["--total-events", 10, "--event-rate", 0.1, "--pubsub"]
+    result = runner.invoke(app, test_input)
+    assert result.exit_code == 2
+    assert "Please define PROJECT_ID in .env" in result.output
+
+
+@patch("tollway.callbacks.PROJECT_ID", "my-project")
+@patch("tollway.callbacks.TOPIC_ID", None)
+def test_pubsub_no_topic():
+    test_input = ["--total-events", 10, "--event-rate", 0.1, "--pubsub"]
+    result = runner.invoke(app, test_input)
+    assert result.exit_code == 2
+    assert "Please define TOPIC_ID in .env" in result.output
