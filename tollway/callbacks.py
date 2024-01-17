@@ -19,7 +19,11 @@ def event_rate_callback(event_rate: float):
     return event_rate
 
 
-def filename_callback(filename: str):
+def filename_callback(ctx: typer.Context, filename: str):
+    output_file = ctx.params.get("output_file")
+    if not output_file:
+        raise typer.BadParameter("--output-file must be enabled")
+
     path = Path(filename.lower())
     if FILE_SUFFIX not in path.suffix:
         raise typer.BadParameter("--output-filename must use json format")
