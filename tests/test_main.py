@@ -70,7 +70,7 @@ def test_output_file_format():
     assert "--output-filename must use json format" in result.output
 
 
-@patch("tollway.constants.PROJECT_ID", None)
+@patch("tollway.callbacks.PROJECT_ID", None)
 def test_pubsub_no_project():
     test_input = ["--total-events", 10, "--event-rate", 0.1, "--pubsub"]
     result = runner.invoke(app, test_input)
@@ -78,8 +78,8 @@ def test_pubsub_no_project():
     assert "Please define PROJECT_ID in .env" in result.output
 
 
-@patch("tollway.constants.PROJECT_ID", "my-project")
-@patch("tollway.constants.TOPIC_ID", None)
+@patch("tollway.callbacks.PROJECT_ID", "my-project")
+@patch("tollway.callbacks.TOPIC_ID", None)
 def test_pubsub_no_topic():
     test_input = ["--total-events", 10, "--event-rate", 0.1, "--pubsub"]
     result = runner.invoke(app, test_input)
