@@ -31,4 +31,4 @@ def encode_message(message: dict) -> PubsubMessage:
 def write_to_file(filename: str, events_log: list[dict]):
     path = Path().absolute()
     with open(path / filename, mode="a") as file:
-        json.dump(obj=events_log, fp=file, indent=4)
+        json.dump(obj=events_log, fp=file, indent=1)

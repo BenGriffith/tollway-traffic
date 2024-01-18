@@ -37,6 +37,7 @@ def process_late_event(
     if publisher and topic_path:
         data = encode_message(message=late_event_message)
         future = publisher.publish(topic=topic_path, messages=data)
+    late_event_message["is_late"] = time_unit
     events_log["all_events"].append(late_event_message)
     events_log["late_events"][time_unit] = []
     return events_log
@@ -54,6 +55,7 @@ def process_duplicate_event(
     if publisher and topic_path:
         data = encode_message(message=duplicate_event)
         future = publisher.publish(topic=topic_path, messages=data)
+    duplicate_event["is_duplicate"] = "true"
     events_log["all_events"].append(duplicate_event)
     events_log["past_events"] = []
     return events_log
