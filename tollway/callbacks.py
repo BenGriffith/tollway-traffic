@@ -2,7 +2,7 @@ from pathlib import Path
 
 import typer
 
-from tollway.constants import FILE_SUFFIX, PROJECT_ID, TOPIC_ID
+from tollway.constants import FILE_SUFFIX, FILENAME, PROJECT_ID, TOPIC_ID
 
 
 def total_event_callback(total_events: int):
@@ -21,7 +21,7 @@ def event_rate_callback(event_rate: float):
 
 def filename_callback(ctx: typer.Context, filename: str):
     output_file = ctx.params.get("output_file")
-    if not output_file:
+    if not output_file and filename != FILENAME:
         raise typer.BadParameter("--output-file must be enabled")
 
     path = Path(filename.lower())

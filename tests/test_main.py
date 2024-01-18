@@ -64,7 +64,7 @@ def test_app_inputs(test_input, expected):
 
 
 def test_output_file_format():
-    test_input = ["--output-filename", "invalid-format.csv"]
+    test_input = ["--output-file", "--output-filename", "invalid-format.csv"]
     result = runner.invoke(app, test_input)
     assert result.exit_code == 2
     assert "--output-filename must use json format" in result.output

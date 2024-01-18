@@ -11,7 +11,13 @@ from tollway.callbacks import (
     pubsub_callback,
     total_event_callback,
 )
-from tollway.constants import ALL_EVENTS_COUNT, DUPLICATE_RATE, LATE_EVENT_RATE, Help
+from tollway.constants import (
+    ALL_EVENTS_COUNT,
+    DUPLICATE_RATE,
+    FILENAME,
+    LATE_EVENT_RATE,
+    Help,
+)
 from tollway.events import process_duplicate_event, process_late_event
 from tollway.utils import EventsLog, encode_message, get_topic, write_to_file
 from tollway.vehicle import create_message, create_tollway, create_vehicle, get_tollways
@@ -33,7 +39,7 @@ def main(
     output_file: Annotated[bool, typer.Option(help=Help.OUTPUT_FILE.value)] = False,
     output_filename: Annotated[
         str, typer.Option(help=Help.OUTPUT_FILENAME.value, callback=filename_callback)
-    ] = "tollway-traffic.json",
+    ] = FILENAME,
     include_late_seconds: Annotated[bool, typer.Option(help=Help.INCLUDE_LATE_SECONDS.value)] = False,
     include_late_minutes: Annotated[bool, typer.Option(help=Help.INCLUDE_LATE_MINUTES.value)] = False,
     include_late_hours: Annotated[bool, typer.Option(help=Help.INCLUDE_LATE_HOURS.value)] = False,

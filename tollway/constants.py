@@ -9,6 +9,7 @@ TOLLWAYS_URL = f"https://en.wikipedia.org/{URL_PATH}"
 TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S.%f %z"
 DUPLICATE_RATE = config("INCLUDE_DUPLICATE_RATE", default=50, cast=int)
 ALL_EVENTS_COUNT = config("ALL_EVENTS_COUNT", default=250, cast=int)
+FILENAME = "tollway-traffic.json"
 FILE_SUFFIX = "json"
 PROJECT_ID = config("PROJECT_ID", default=None)
 TOPIC_ID = config("TOPIC_ID", default=None)

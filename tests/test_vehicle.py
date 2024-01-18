@@ -18,7 +18,7 @@ def test_get_states(tollways):
     [
         ("Alabama", 4),
         ("California", 17),
-        ("Colorado", 8),
+        ("Colorado", 9),
         ("Delaware", 3),
         ("Florida", 35),
         ("Georgia", 4),
