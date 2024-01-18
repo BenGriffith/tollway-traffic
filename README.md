@@ -143,3 +143,17 @@ To enable `--pubsub`
 ```
 $ python3 -m tollway --total-events 100 --pubsub
 ```
+
+## Identify Late and/or Duplicate Events
+If you would like to have more into the late and/or duplicate events that have been created, you can do so by enabling the `--output-file` option with any of the `--include-late` and `--include-duplicate` options. Enabling `--output-file` will write all events to a json file and all late and/or duplicates events will have additional references.
+- Late events will have the key `is_late` with time unit (seconds, minutes, hours, days) as the `value`.
+- Duplicate events will have the key `is_duplicate` with a `value` of `true`.
+
+Below are a couple examples:
+
+### Late Event
+![Late](images/late.png "Late Event")
+
+
+### Duplicate Event
+![Duplicate](images/duplicate.png "Duplicate Event")

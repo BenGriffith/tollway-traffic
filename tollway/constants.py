@@ -19,7 +19,6 @@ class Help(Enum):
     EVENT_RATE = "rate at which events should be created"
     OUTPUT_FILE = "write all events to a local file/log"
     OUTPUT_FILENAME = "provide your own JSON filename"
-    DATE_VARIATION = "'mini-batch' of messages with noticeably different dates"
     INCLUDE_LATE_SECONDS = "generate late events by seconds"
     INCLUDE_LATE_MINUTES = "generate late events by minutes"
     INCLUDE_LATE_HOURS = "generate late events by hours"
