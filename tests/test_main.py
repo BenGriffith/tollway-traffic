@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from typer.testing import CliRunner
 
@@ -15,17 +17,78 @@ runner = CliRunner()
         pytest.param(["--event-rate", -1], 2, id="fail_event_rate_lt_min"),
         pytest.param(["--event-rate", 20], 2, id="fail_event_rate_gt_max"),
         pytest.param(["--output-file", "True"], 2, id="fail_output_file_type"),
-        pytest.param(["--output-filename", "invalid-format.csv"], 2, id="fail_output_filename_csv"),
-        pytest.param(["--output-filename", "invalid-format.jsn"], 2, id="fail_output_filename_json"),
-        pytest.param(["--date-variation", "--include-late", "--include-duplicate"], 2, id="fail_date_variation"),
-        pytest.param(["--date-variation", "--include-late"], 2, id="fail_date_variation_include_late"),
-        pytest.param(["--date-variation", "--include-duplicate"], 2, id="fail_date_variation_include_duplicate"),
-        pytest.param(["--date-variation"], 0, id="pass_date_variation"),
-        pytest.param(["--include-late"], 0, id="pass_include_late"),
-        pytest.param(["--include-duplicate"], 0, id="pass_include_duplicate"),
-        pytest.param(["--include-late", "--include-duplicate"], 0, id="pass_include_late_include_duplicate"),
+        pytest.param(
+            ["--total-events", 50, "--event-rate", 0.1, "--include-late-seconds"],
+            0,
+            id="pass_include_late_seconds",
+        ),
+        pytest.param(
+            ["--total-events", 100, "--event-rate", 0.1, "--include-late-minutes"],
+            0,
+            id="pass_include_late_minutes",
+        ),
+        pytest.param(
+            ["--total-events", 100, "--event-rate", 0.1, "--include-late-seconds", "--include-late-minutes"],
+            0,
+            id="pass_include_late_seconds_minutes",
+        ),
+        pytest.param(
+            ["--total-events", 100, "--event-rate", 0.1, "--include-late-hours"],
+            0,
+            id="pass_include_late_hours",
+        ),
+        pytest.param(
+            ["--total-events", 100, "--event-rate", 0.1, "--include-late-days"],
+            0,
+            id="pass_include_late_days",
+        ),
+        pytest.param(
+            [
+                "--total-events",
+                100,
+                "--event-rate",
+                0.1,
+                "--include-late-seconds",
+                "--include-late-minutes",
+                "--include-late-hours",
+                "--include-late-days",
+            ],
+            0,
+            id="pass_include_late_all",
+        ),
     ],
 )
 def test_app_inputs(test_input, expected):
     result = runner.invoke(app, test_input)
     assert result.exit_code == expected
+
+
+def test_output_file_format():
+    test_input = ["--output-file", "--output-filename", "invalid-format.csv"]
+    result = runner.invoke(app, test_input)
+    assert result.exit_code == 2
+    assert "--output-filename must use json format" in result.output
+
+
+@patch("tollway.callbacks.PROJECT_ID", None)
+def test_pubsub_no_project():
+    test_input = ["--total-events", 10, "--event-rate", 0.1, "--pubsub"]
+    result = runner.invoke(app, test_input)
+    assert result.exit_code == 2
+    assert "Please define PROJECT_ID in .env" in result.output
+
+
+@patch("tollway.callbacks.PROJECT_ID", "my-project")
+@patch("tollway.callbacks.TOPIC_ID", None)
+def test_pubsub_no_topic():
+    test_input = ["--total-events", 10, "--event-rate", 0.1, "--pubsub"]
+    result = runner.invoke(app, test_input)
+    assert result.exit_code == 2
+    assert "Please define TOPIC_ID in .env" in result.output
+
+
+def test_filename_output_file_disabled():
+    test_input = ["--total-events", 10, "--event-rate", 0.1, "--output-filename", "myfile.json"]
+    result = runner.invoke(app, test_input)
+    assert result.exit_code == 2
+    assert "--output-file must be enabled" in result.output

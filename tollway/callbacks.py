@@ -2,7 +2,7 @@ from pathlib import Path
 
 import typer
 
-from tollway.constants import FILE_SUFFIX
+from tollway.constants import FILE_SUFFIX, FILENAME, PROJECT_ID, TOPIC_ID
 
 
 def total_event_callback(total_events: int):
@@ -19,17 +19,20 @@ def event_rate_callback(event_rate: float):
     return event_rate
 
 
-def filename_callback(filename: str):
+def filename_callback(ctx: typer.Context, filename: str):
+    output_file = ctx.params.get("output_file")
+    if not output_file and filename != FILENAME:
+        raise typer.BadParameter("--output-file must be enabled")
+
     path = Path(filename.lower())
     if FILE_SUFFIX not in path.suffix:
         raise typer.BadParameter("--output-filename must use json format")
     return filename
 
 
-def behavior_callback(ctx: typer.Context, include_duplicate: bool):
-    date_variation = ctx.params.get("date_variation")
-    include_late = ctx.params.get("include_late")
-
-    if date_variation and (include_late or include_duplicate):
-        raise typer.BadParameter("when --date-variation is Enabled --include-late and --include-duplicate must be Disabled")
-    return include_duplicate
+def pubsub_callback(value):
+    if value and PROJECT_ID is None:
+        raise typer.BadParameter("Please define PROJECT_ID in .env")
+    if value and TOPIC_ID is None:
+        raise typer.BadParameter("Please define TOPIC_ID in .env")
+    return value
