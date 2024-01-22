@@ -85,7 +85,7 @@ def main(
         if include_late_days:
             events_log["late_events"]["days"].append(message["timestamp"])
 
-        if include_late_seconds or include_late_minutes or include_late_hours or include_late_days:
+        if any([include_late_seconds, include_late_minutes, include_late_hours, include_late_days]):
             for time_unit, late_events in events_log["late_events"].items():
                 if len(late_events) == LATE_EVENT_RATE[time_unit]:
                     events_log = process_late_event(
