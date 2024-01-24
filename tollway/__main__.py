@@ -11,14 +11,8 @@ from tollway.callbacks import (
     pubsub_callback,
     total_event_callback,
 )
-from tollway.constants import (
-    ALL_EVENTS_COUNT,
-    DUPLICATE_RATE,
-    FILENAME,
-    LATE_EVENT_RATE,
-    Help,
-)
-from tollway.events import process_duplicate_event, process_late_event
+from tollway.constants import ALL_EVENTS_COUNT, FILENAME, Help
+from tollway.events import DuplicateEventProcessor, LateEventProcessor
 from tollway.utils import EventsLog, encode_message, get_topic, write_to_file
 from tollway.vehicle import create_message, create_tollway, create_vehicle, get_tollways
 
@@ -64,8 +58,8 @@ def main(
     for event_count in range(total_events):
 
         # to control events_log["all_events"] logging
-        include_late_processed = False
-        include_duplicate_processed = False
+        late_processed = False
+        duplicate_processed = False
 
         # create new event
         tollway = create_tollway(tollways=tollways)
@@ -86,35 +80,31 @@ def main(
             events_log["late_events"]["days"].append(message["timestamp"])
 
         if any([include_late_seconds, include_late_minutes, include_late_hours, include_late_days]):
-            for time_unit, late_events in events_log["late_events"].items():
-                if len(late_events) == LATE_EVENT_RATE[time_unit]:
-                    events_log = process_late_event(
-                        events_log=events_log,
-                        fake=fake,
-                        tollways=tollways,
-                        publisher=publisher,
-                        topic_path=topic_path,
-                        time_unit=time_unit,
-                    )
-                    include_late_processed = True
+            late_event = LateEventProcessor(
+                events_log=events_log,
+                publisher=publisher,
+                topic_path=topic_path,
+                fake=fake,
+                tollways=tollways,
+            )
+            events_log, late_processed = late_event.process_event()
 
         # DUPLICATE EVENTS
         if include_duplicate:
             events_log["past_events"].append(message)
-            if len(events_log["past_events"]) == DUPLICATE_RATE:
-                events_log = process_duplicate_event(
-                    events_log=events_log,
-                    publisher=publisher,
-                    topic_path=topic_path,
-                )
-                include_duplicate_processed = True
+            duplicate_event = DuplicateEventProcessor(
+                events_log=events_log,
+                publisher=publisher,
+                topic_path=topic_path,
+            )
+            events_log, duplicate_processed = duplicate_event.process_event()
 
         # captures all events except late and duplicate
         if pubsub:
             data = encode_message(message=message)
             future = publisher.publish(topic=topic_path, data=data)
 
-        if not include_late_processed and not include_duplicate_processed:
+        if not late_processed and not duplicate_processed:
             events_log["all_events"].append(message)
 
         if len(events_log["all_events"]) == ALL_EVENTS_COUNT:
