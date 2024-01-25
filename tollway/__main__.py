@@ -8,7 +8,6 @@ from typing_extensions import Annotated
 from tollway.callbacks import (
     event_rate_callback,
     filename_callback,
-    pubsub_callback,
     total_event_callback,
 )
 from tollway.constants import ALL_EVENTS_COUNT, FILENAME, Help
@@ -39,7 +38,7 @@ def main(
     include_late_hours: Annotated[bool, typer.Option(help=Help.INCLUDE_LATE_HOURS.value)] = False,
     include_late_days: Annotated[bool, typer.Option(help=Help.INCLUDE_LATE_DAYS.value)] = False,
     include_duplicate: Annotated[bool, typer.Option(help=Help.INCLUDE_DUPLICATE.value)] = False,
-    pubsub: Annotated[bool, typer.Option(help=Help.PUBSUB.value, callback=pubsub_callback)] = False,
+    pubsub: Annotated[bool, typer.Option(help=Help.PUBSUB.value)] = False,
 ):
 
     events_log: EventsLog = {
