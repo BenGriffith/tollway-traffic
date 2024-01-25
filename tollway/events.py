@@ -69,7 +69,7 @@ class LateEventProcessor(EventProcessor):
     def process_event(self):
         for time_interval, late_events in self.events_log["late_events"].items():
             self.time_unit = time_interval
-            if len(late_events) == LATE_EVENT_RATE:
+            if len(late_events) == LATE_EVENT_RATE[self.time_unit]:
                 late_event = self.create_event()
                 self.publish_event(event_message=late_event)
                 late_event["is_late"] = self.time_unit
