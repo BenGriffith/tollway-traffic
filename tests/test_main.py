@@ -54,6 +54,7 @@ runner = CliRunner()
             0,
             id="pass_include_late_all",
         ),
+        pytest.param(["--pubsub"], 1, id="fail_pubsub"),
     ],
 )
 def test_app_inputs(test_input, expected):
