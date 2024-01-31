@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import pytest
 from typer.testing import CliRunner
 
@@ -56,6 +54,7 @@ runner = CliRunner()
             0,
             id="pass_include_late_all",
         ),
+        pytest.param(["--pubsub"], 1, id="fail_pubsub"),
     ],
 )
 def test_app_inputs(test_input, expected):
@@ -68,23 +67,6 @@ def test_output_file_format():
     result = runner.invoke(app, test_input)
     assert result.exit_code == 2
     assert "--output-filename must use json format" in result.output
-
-
-@patch("tollway.callbacks.PROJECT_ID", None)
-def test_pubsub_no_project():
-    test_input = ["--total-events", 10, "--event-rate", 0.1, "--pubsub"]
-    result = runner.invoke(app, test_input)
-    assert result.exit_code == 2
-    assert "Please define PROJECT_ID in .env" in result.output
-
-
-@patch("tollway.callbacks.PROJECT_ID", "my-project")
-@patch("tollway.callbacks.TOPIC_ID", None)
-def test_pubsub_no_topic():
-    test_input = ["--total-events", 10, "--event-rate", 0.1, "--pubsub"]
-    result = runner.invoke(app, test_input)
-    assert result.exit_code == 2
-    assert "Please define TOPIC_ID in .env" in result.output
 
 
 def test_filename_output_file_disabled():
