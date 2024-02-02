@@ -64,13 +64,13 @@ $ cp .env-template .env
 
 5. (Optional) Configure environment variables in `.env`
 
-In the `constants` module, default values are provided for `LATE_SECONDS_RATE`, `LATE_MINUTES_RATE`, `LATE_HOURS_RATE`, `LATE_DAYS_RATE`, `INCLUDE_DUPLICATE_RATE`, and `ALL_EVENTS_COUNT`. If you would like to override these values, you can do so using `.env`. For example, `LATE_SECONDS_RATE` has a default value of 10. If you wanted to change this value to 20, then head over to `.env` and update `LATE_SECONDS_RATE` to 20 so `LATE_SECONDS_RATE=20`. Below is a brief description for these environment variables:
+In the `constants` module, default values are provided for `LATE_SECONDS_RATE`, `LATE_MINUTES_RATE`, `LATE_HOURS_RATE`, `LATE_DAYS_RATE`, `DUPLICATE_RATE`, and `ALL_EVENTS_COUNT`. If you would like to override these values, you can do so using `.env`. For example, `LATE_SECONDS_RATE` has a default value of 10. If you wanted to change this value to 20, then head over to `.env` and update `LATE_SECONDS_RATE` to 20 so `LATE_SECONDS_RATE=20`. Below is a brief description for these environment variables:
 
 - `LATE_SECONDS_RATE` controls the seconds-late event generation rate so for every *n* events one seconds-late event will be created. Default value is 10.
 - `LATE_MINUTES_RATE` controls the minutes-late event generation rate so for every *n* events one minutes-late event will be created. Default value is 20.
 - `LATE_HOURS_RATE` controls the hours-late event generation rate so for every *n* events one hours-late event will be created. Default value is 30.
 - `LATE_DAYS_RATE` controls the days-late event generation rate so for every *n* events one days-late event will be created. Default value is 100.
-- `INCLUDE_DUPLICATE_RATE` controls the duplicate event generation rate so for every *n* events one duplicate event will be created. Default value is 50.
+- `DUPLICATE_RATE` controls the duplicate event generation rate so for every *n* events one duplicate event will be created. Default value is 50.
 - `ALL_EVENTS_COUNT` is used to track events generated/for logging purposes. Default value is 250.
 
 6. (Optional) Enable pubsub functionality
@@ -91,7 +91,7 @@ Next, please provide values for the following environment variables:
 
 - `PROJECT_ID` - Google Cloud Project ID
 - `TOPIC_ID` - pubsub topic name
-- `PUBSUB_SERVICE_ACCOUNT` - Path to pubsub service account key such as `/service_account/pubsub.json`
+- `PUBSUB_SERVICE_ACCOUNT` - Absolute Path to pubsub service account key such as `/Users/bengriffith/Projects/tollway-traffic/service_account/pubsub.json`
 - `GOOGLE_REGION` - Name of Google Geographical Region
 
 Last, leverage Terraform setup commands in `Makefile`:
