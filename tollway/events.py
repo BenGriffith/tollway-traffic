@@ -25,7 +25,7 @@ class EventProcessor:
     def publish_event(self, event_message: dict[str, str]) -> None:
         if self.publisher and self.topic_path:
             data = encode_message(message=event_message)
-            future = self.publisher.publish(topic=self.topic_path, messages=data)
+            future = self.publisher.publish(topic=self.topic_path, data=data)
 
     def logging(self, event_message: dict[str, Union[str, bool]]) -> None:
         self.events_log["all_events"].append(event_message)
@@ -87,7 +87,7 @@ class DuplicateEventProcessor(EventProcessor):
         return random.choice(self.events_log["past_events"])
 
     def process_event(self):
-        if len(self.events_log["past_events"] == DUPLICATE_RATE):
+        if len(self.events_log["past_events"]) == DUPLICATE_RATE:
             duplicate_event = self.create_event()
             self.publish_event(event_message=duplicate_event)
             duplicate_event["is_duplicate"] = True

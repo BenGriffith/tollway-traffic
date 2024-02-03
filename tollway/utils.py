@@ -4,7 +4,7 @@ from typing import Mapping, TypedDict, Union
 
 from decouple import config
 from google.cloud import pubsub_v1
-from google.pubsub_v1 import PubsubMessage
+from google.oauth2 import service_account
 
 
 class EventsLog(TypedDict):
@@ -17,14 +17,15 @@ def get_topic(pubsub: bool) -> tuple:
     if pubsub:
         project = config("PROJECT_ID")
         topic = config("TOPIC_ID")
-        publisher = pubsub_v1.PublisherClient()
+        credentials = service_account.Credentials.from_service_account_file(config("PUBSUB_SERVICE_ACCOUNT"))
+        publisher = pubsub_v1.PublisherClient(credentials=credentials)
         topic_path = publisher.topic_path(project=project, topic=topic)
         return publisher, topic_path
     return None, None
 
 
-def encode_message(message: dict) -> PubsubMessage:
-    return PubsubMessage(json.dumps(message).encode("utf-8"))
+def encode_message(message: dict) -> bytes:
+    return json.dumps(message).encode("utf-8")
 
 
 def write_to_file(filename: str, events_log: list[Mapping[str, Union[str, bool]]]):
