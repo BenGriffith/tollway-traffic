@@ -1,18 +1,18 @@
 from enum import Enum
 
-from decouple import config
 from us.states import STATES_AND_TERRITORIES
 
+from tollway.utils import get_envs
+
+envs = get_envs()
 STATE_NAMES = [state.name for state in STATES_AND_TERRITORIES]
 URL_PATH = "wiki/List_of_toll_roads_in_the_United_States"
 TOLLWAYS_URL = f"https://en.wikipedia.org/{URL_PATH}"
 TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S.%f %z"
-DUPLICATE_RATE = config("INCLUDE_DUPLICATE_RATE", default=50, cast=int)
-ALL_EVENTS_COUNT = config("ALL_EVENTS_COUNT", default=250, cast=int)
+DUPLICATE_RATE = envs["duplicate_rate"]
+ALL_EVENTS_COUNT = envs["all_events_count"]
 FILENAME = "tollway-traffic.json"
 FILE_SUFFIX = "json"
-PROJECT_ID = config("PROJECT_ID", default=None)
-TOPIC_ID = config("TOPIC_ID", default=None)
 
 
 class Help(Enum):
@@ -29,10 +29,10 @@ class Help(Enum):
 
 
 LATE_EVENT_RATE = {
-    "seconds": config("LATE_SECONDS_RATE", default=10, cast=int),
-    "minutes": config("LATE_MINUTES_RATE", default=20, cast=int),
-    "hours": config("LATE_HOURS_RATE", default=30, cast=int),
-    "days": config("LATE_DAYS_RATE", default=100, cast=int),
+    "seconds": envs["late_seconds_rate"],
+    "minutes": envs["late_minutes_rate"],
+    "hours": envs["late_hours_rate"],
+    "days": envs["late_days_rate"],
 }
 
 
