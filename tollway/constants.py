@@ -4,13 +4,12 @@ from us.states import STATES_AND_TERRITORIES
 
 from tollway.utils import get_envs
 
-envs = get_envs()
 STATE_NAMES = [state.name for state in STATES_AND_TERRITORIES]
 URL_PATH = "wiki/List_of_toll_roads_in_the_United_States"
 TOLLWAYS_URL = f"https://en.wikipedia.org/{URL_PATH}"
 TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S.%f %z"
-DUPLICATE_RATE = envs["duplicate_rate"]
-ALL_EVENTS_COUNT = envs["all_events_count"]
+DUPLICATE_RATE = get_envs("duplicate")
+ALL_EVENTS_COUNT = get_envs("all")
 FILENAME = "tollway-traffic.json"
 FILE_SUFFIX = "json"
 
@@ -29,10 +28,10 @@ class Help(Enum):
 
 
 LATE_EVENT_RATE = {
-    "seconds": envs["late_seconds_rate"],
-    "minutes": envs["late_minutes_rate"],
-    "hours": envs["late_hours_rate"],
-    "days": envs["late_days_rate"],
+    "seconds": get_envs("seconds"),
+    "minutes": get_envs("minutes"),
+    "hours": get_envs("hours"),
+    "days": get_envs("days"),
 }
 
 
