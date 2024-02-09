@@ -1,10 +1,13 @@
 import json
+from collections import namedtuple
 from pathlib import Path
 from typing import Mapping, TypedDict, Union
 
 from decouple import config
 from google.cloud import pubsub_v1
 from google.oauth2 import service_account
+
+Topic = namedtuple("Topic", ["publisher", "topic_path"])
 
 
 class EventsLog(TypedDict):
@@ -13,15 +16,15 @@ class EventsLog(TypedDict):
     all_events: list[Mapping[str, Union[str, bool]]]
 
 
-def get_topic(pubsub: bool) -> tuple:
+def get_topic(pubsub: bool) -> Topic:
     if pubsub:
         project = config("PROJECT_ID")
         topic = config("TOPIC_ID")
         credentials = service_account.Credentials.from_service_account_file(config("PUBSUB_SERVICE_ACCOUNT"))
         publisher = pubsub_v1.PublisherClient(credentials=credentials)
         topic_path = publisher.topic_path(project=project, topic=topic)
-        return publisher, topic_path
-    return None, None
+        return Topic(publisher=publisher, topic_path=topic_path)
+    return Topic(publisher=None, topic_path=None)
 
 
 def encode_message(message: dict) -> bytes:
