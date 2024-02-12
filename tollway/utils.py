@@ -1,4 +1,5 @@
 import json
+import logging
 from collections import namedtuple
 from pathlib import Path
 from typing import Mapping, TypedDict, Union
@@ -6,6 +7,14 @@ from typing import Mapping, TypedDict, Union
 from decouple import config
 from google.cloud import pubsub_v1
 from google.oauth2 import service_account
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    filename="pubsub.log",
+    filemode="a",
+)
+logger = logging.getLogger("pubsub")
 
 Topic = namedtuple("Topic", ["publisher", "topic_path"])
 
@@ -29,6 +38,14 @@ def get_topic(pubsub: bool) -> Topic:
 
 def encode_message(message: dict) -> bytes:
     return json.dumps(message).encode("utf-8")
+
+
+def future_callback(future) -> None:
+    try:
+        message_id = future.result()
+        logger.info(f"Message published with ID: {message_id}")
+    except Exception as e:
+        logger.error(f"An exception occurred: {e}")
 
 
 def write_to_file(filename: str, events_log: list[Mapping[str, Union[str, bool]]]):
