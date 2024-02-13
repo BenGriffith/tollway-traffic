@@ -59,6 +59,7 @@ def main(
         "all_events": [],
     }
 
+    # pubsub initial setup
     publisher, topic_path = get_topic(pubsub=pubsub)
     pubsub_logger = get_pubsub_logger(pubsub=pubsub)
 

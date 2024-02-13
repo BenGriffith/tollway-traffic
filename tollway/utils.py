@@ -30,6 +30,7 @@ def get_topic(pubsub: bool) -> Topic:
 
 
 def get_pubsub_logger(pubsub: bool) -> logging.Logger:
+    logger = logging.getLogger("pubsub")
     if pubsub:
         logging.basicConfig(
             level=logging.INFO,
@@ -37,7 +38,9 @@ def get_pubsub_logger(pubsub: bool) -> logging.Logger:
             filename="pubsub.log",
             filemode="a",
         )
-        logger = logging.getLogger("pubsub")
+    else:
+        logger.handlers.clear()
+        logger.addHandler(logging.NullHandler())
     return logger
 
 
