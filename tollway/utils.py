@@ -54,10 +54,6 @@ def write_to_file(filename: str, events_log: list[Mapping[str, Union[str, bool]]
         json.dump(obj=events_log, fp=file, indent=1)
 
 
-def get_envs(env: str) -> int:
-    defaults = {"duplicate": 50, "all": 250, "seconds": 10, "minutes": 20, "hours": 30, "days": 100}
-
-    env_variable = config(env.upper(), default=defaults[env])
-    if env_variable == "":
-        return defaults[env]
-    return env_variable
+def get_config_with_default(key: str, default_value: int) -> int:
+    value = config(key, default=default_value)
+    return default_value if value.strip() == "" else int(value)
