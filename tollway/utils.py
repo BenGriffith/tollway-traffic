@@ -2,19 +2,12 @@ import json
 import logging
 from collections import namedtuple
 from pathlib import Path
-from typing import Mapping, TypedDict, Union
+from typing import Callable, Mapping, TypedDict, Union
 
 from decouple import config
 from google.cloud import pubsub_v1
+from google.cloud.pubsub_v1.publisher.futures import Future
 from google.oauth2 import service_account
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    filename="pubsub.log",
-    filemode="a",
-)
-logger = logging.getLogger("pubsub")
 
 Topic = namedtuple("Topic", ["publisher", "topic_path"])
 
@@ -36,16 +29,31 @@ def get_topic(pubsub: bool) -> Topic:
     return Topic(publisher=None, topic_path=None)
 
 
+def get_pubsub_logger(pubsub: bool) -> logging.Logger:
+    if pubsub:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            filename="pubsub.log",
+            filemode="a",
+        )
+        logger = logging.getLogger("pubsub")
+    return logger
+
+
 def encode_message(message: dict) -> bytes:
     return json.dumps(message).encode("utf-8")
 
 
-def future_callback(future) -> None:
-    try:
-        message_id = future.result()
-        logger.info(f"Message published with ID: {message_id}")
-    except Exception as e:
-        logger.error(f"An exception occurred: {e}")
+def future_callback(logger: logging.Logger) -> Callable[[Future], None]:
+    def callback(future: Future) -> None:
+        try:
+            message_id = future.result()
+            logger.info(f"Message published with ID: {message_id}")
+        except Exception as e:
+            logger.error(f"An exception occurred: {e}")
+
+    return callback
 
 
 def write_to_file(filename: str, events_log: list[Mapping[str, Union[str, bool]]]):
@@ -54,6 +62,6 @@ def write_to_file(filename: str, events_log: list[Mapping[str, Union[str, bool]]
         json.dump(obj=events_log, fp=file, indent=1)
 
 
-def get_config_with_default(key: str, default_value: int) -> int:
+def get_config_with_default(key: str, default_value: str) -> int:
     value = config(key, default=default_value)
-    return default_value if value.strip() == "" else int(value)
+    return int(default_value) if value.strip() == "" else int(value)
