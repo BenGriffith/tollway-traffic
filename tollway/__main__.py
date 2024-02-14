@@ -12,7 +12,14 @@ from tollway.callbacks import (
 )
 from tollway.constants import ALL_EVENTS_COUNT, FILENAME, Help
 from tollway.events import DuplicateEventProcessor, LateEventProcessor
-from tollway.utils import EventsLog, encode_message, get_topic, write_to_file
+from tollway.utils import (
+    EventsLog,
+    encode_message,
+    future_callback,
+    get_pubsub_logger,
+    get_topic,
+    write_to_file,
+)
 from tollway.vehicle import create_message, create_tollway, create_vehicle, get_tollways
 
 app = typer.Typer()
@@ -52,7 +59,9 @@ def main(
         "all_events": [],
     }
 
+    # pubsub initial setup
     publisher, topic_path = get_topic(pubsub=pubsub)
+    pubsub_logger = get_pubsub_logger(pubsub=pubsub)
 
     for event_count in range(total_events):
 
@@ -102,6 +111,7 @@ def main(
         if pubsub:
             data = encode_message(message=message)
             future = publisher.publish(topic=topic_path, data=data)
+            future.add_done_callback(future_callback(logger=pubsub_logger))
 
         if not late_processed and not duplicate_processed:
             events_log["all_events"].append(message)

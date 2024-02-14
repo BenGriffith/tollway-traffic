@@ -2,14 +2,14 @@ from enum import Enum
 
 from us.states import STATES_AND_TERRITORIES
 
-from tollway.utils import get_envs
+from tollway.utils import get_config_with_default
 
 STATE_NAMES = [state.name for state in STATES_AND_TERRITORIES]
 URL_PATH = "wiki/List_of_toll_roads_in_the_United_States"
 TOLLWAYS_URL = f"https://en.wikipedia.org/{URL_PATH}"
 TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S.%f %z"
-DUPLICATE_RATE = get_envs("duplicate")
-ALL_EVENTS_COUNT = get_envs("all")
+DUPLICATE_RATE = get_config_with_default(key="DUPLICATE_RATE", default_value="50")
+ALL_EVENTS_COUNT = get_config_with_default(key="ALL_EVENTS_COUNT", default_value="250")
 FILENAME = "tollway-traffic.json"
 FILE_SUFFIX = "json"
 
@@ -28,10 +28,10 @@ class Help(Enum):
 
 
 LATE_EVENT_RATE = {
-    "seconds": get_envs("seconds"),
-    "minutes": get_envs("minutes"),
-    "hours": get_envs("hours"),
-    "days": get_envs("days"),
+    "seconds": get_config_with_default(key="LATE_SECONDS_RATE", default_value="10"),
+    "minutes": get_config_with_default(key="LATE_MINUTES_RATE", default_value="20"),
+    "hours": get_config_with_default(key="LATE_HOURS_RATE", default_value="30"),
+    "days": get_config_with_default(key="LATE_DAYS_RATE", default_value="100"),
 }
 
 

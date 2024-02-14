@@ -95,8 +95,8 @@ def pubsub():
 def late_events(faker_vehicle, events_log, pubsub, tollways):
     late_event = LateEventProcessor(
         events_log=events_log,
-        publisher=pubsub[0],
-        topic_path=pubsub[1],
+        publisher=pubsub.publisher,
+        topic_path=pubsub.topic_path,
         fake=faker_vehicle["faker"],
         tollways=tollways,
     )
@@ -108,28 +108,22 @@ def late_events(faker_vehicle, events_log, pubsub, tollways):
 
 
 @pytest.fixture
-def get_microseconds():
-    def _get_microseconds(ts: str):
-        return datetime.strptime(ts, TIMESTAMP_FORMAT).microsecond
-
-    return _get_microseconds
-
-
-@pytest.fixture
-def generate_event_pair(get_microseconds, late_events, events_log):
+def generate_event_pair(late_events, events_log):
     def _generate_event_pair(time_unit):
         late_event_timestamp = late_events[time_unit]["timestamp"]
-        late_event_microseconds = get_microseconds(late_event_timestamp)
+        late_event_microseconds = datetime.strptime(late_event_timestamp, TIMESTAMP_FORMAT).microsecond
 
         for original_event_timestamp in events_log["late_events"][time_unit]:
-            original_event_microseconds = get_microseconds(original_event_timestamp)
+            original_event_microseconds = datetime.strptime(
+                original_event_timestamp, TIMESTAMP_FORMAT
+            ).microsecond
             # Compare the microseconds part of the timestamps
             if late_event_microseconds == original_event_microseconds:
                 return {
                     "original": datetime.strptime(original_event_timestamp, TIMESTAMP_FORMAT),
                     "late": datetime.strptime(late_event_timestamp, TIMESTAMP_FORMAT),
                 }
-        return None
+        return {}
 
     return _generate_event_pair
 
@@ -148,8 +142,8 @@ def original_and_late_events_timestamps(generate_event_pair):
 def duplicate_event(past_events, pubsub):
     event = DuplicateEventProcessor(
         events_log=past_events,
-        publisher=pubsub[0],
-        topic_path=pubsub[1],
+        publisher=pubsub.publisher,
+        topic_path=pubsub.topic_path,
     )
     duplicate = event.create_event()
     return duplicate

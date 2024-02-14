@@ -11,7 +11,7 @@ from tollway.constants import (
     TIME_UNIT,
     TIMESTAMP_FORMAT,
 )
-from tollway.utils import EventsLog, encode_message
+from tollway.utils import EventsLog, encode_message, future_callback
 from tollway.vehicle import create_message, create_tollway, create_vehicle
 
 
@@ -26,6 +26,7 @@ class EventProcessor:
         if self.publisher and self.topic_path:
             data = encode_message(message=event_message)
             future = self.publisher.publish(topic=self.topic_path, data=data)
+            future.add_done_callback(future_callback)
 
     def logging(self, event_message: dict[str, Union[str, bool]]) -> None:
         self.events_log["all_events"].append(event_message)
