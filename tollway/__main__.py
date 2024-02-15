@@ -12,11 +12,11 @@ from tollway.callbacks import (
 )
 from tollway.constants import ALL_EVENTS_COUNT, FILENAME, Help
 from tollway.events import DuplicateEventProcessor, LateEventProcessor
+from tollway.pubsub_logging import get_pubsub_logger
 from tollway.utils import (
     EventsLog,
     encode_message,
     future_callback,
-    get_pubsub_logger,
     get_topic,
     write_to_file,
 )

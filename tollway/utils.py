@@ -10,8 +10,8 @@ from google.oauth2 import service_account
 
 
 class Topic(NamedTuple):
-    publisher: Optional[pubsub_v1.PublisherClient]
-    topic_path: Optional[str]
+    publisher: pubsub_v1.PublisherClient
+    topic_path: Optional[str] = None
 
 
 class EventsLog(TypedDict):
@@ -29,21 +29,6 @@ def get_topic(pubsub: bool) -> Topic:
         topic_path = publisher.topic_path(project=project, topic=topic)
         return Topic(publisher=publisher, topic_path=topic_path)
     return Topic(publisher=None, topic_path=None)
-
-
-def get_pubsub_logger(pubsub: bool) -> logging.Logger:
-    logger = logging.getLogger("pubsub")
-    if pubsub:
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            filename="pubsub.log",
-            filemode="a",
-        )
-    else:
-        logger.handlers.clear()
-        logger.addHandler(logging.NullHandler())
-    return logger
 
 
 def encode_message(message: dict) -> bytes:
@@ -67,6 +52,6 @@ def write_to_file(filename: str, events_log: list[Mapping[str, Union[str, bool]]
         json.dump(obj=events_log, fp=file, indent=1)
 
 
-def get_config_with_default(key: str, default_value: str) -> int:
+def get_config_with_default(key: str, default_value: int) -> int:
     value = config(key, default=default_value)
-    return int(default_value) if value.strip() == "" else int(value)
+    return default_value if value == "" else int(value)
