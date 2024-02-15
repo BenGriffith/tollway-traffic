@@ -1,15 +1,17 @@
 import json
 import logging
-from collections import namedtuple
 from pathlib import Path
-from typing import Callable, Mapping, TypedDict, Union
+from typing import Callable, Mapping, NamedTuple, Optional, TypedDict, Union
 
 from decouple import config
 from google.cloud import pubsub_v1
 from google.cloud.pubsub_v1.publisher.futures import Future
 from google.oauth2 import service_account
 
-Topic = namedtuple("Topic", ["publisher", "topic_path"])
+
+class Topic(NamedTuple):
+    publisher: Optional[pubsub_v1.PublisherClient]
+    topic_path: Optional[str]
 
 
 class EventsLog(TypedDict):
