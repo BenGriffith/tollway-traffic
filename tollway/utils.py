@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Callable, Mapping, NamedTuple, Optional, TypedDict, Union
 
 from decouple import config
+from google.api_core.exceptions import GoogleAPICallError, RetryError
 from google.cloud import pubsub_v1
 from google.cloud.pubsub_v1.publisher.futures import Future
 from google.oauth2 import service_account
@@ -40,8 +41,12 @@ def future_callback(logger: logging.Logger) -> Callable[[Future], None]:
         try:
             message_id = future.result()
             logger.info(f"Message published with ID: {message_id}")
+        except GoogleAPICallError as e:
+            logger.error(f"A Google API call error occurred: {e}")
+        except RetryError as e:
+            logger.error(f"A retry error occurred: {e}")
         except Exception as e:
-            logger.error(f"An exception occurred: {e}")
+            logger.exception("An unexpected exception occurred")
 
     return callback
 
