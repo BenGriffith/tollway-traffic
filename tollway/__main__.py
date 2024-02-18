@@ -95,7 +95,7 @@ def main(
                 fake=fake,
                 tollways=tollways,
             )
-            events_log, late_processed = late_event.process_event()
+            events_log, late_processed = late_event.process_event(pubsub_logger=pubsub_logger)
 
         # DUPLICATE EVENTS
         if include_duplicate:
@@ -105,13 +105,13 @@ def main(
                 publisher=publisher,
                 topic_path=topic_path,
             )
-            events_log, duplicate_processed = duplicate_event.process_event()
+            events_log, duplicate_processed = duplicate_event.process_event(pubsub_logger=pubsub_logger)
 
         # captures all events except late and duplicate
         if pubsub:
             data = encode_message(message=message)
             future = publisher.publish(topic=topic_path, data=data)
-            future.add_done_callback(future_callback(logger=pubsub_logger))
+            future.add_done_callback(future_callback(logger=pubsub_logger, event_message=message))
 
         if not late_processed and not duplicate_processed:
             events_log["all_events"].append(message)
