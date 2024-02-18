@@ -36,10 +36,11 @@ def encode_message(message: dict) -> bytes:
     return json.dumps(message).encode("utf-8")
 
 
-def future_callback(logger: logging.Logger) -> Callable[[Future], None]:
+def future_callback(logger: logging.Logger, event_message: dict[str, str]) -> Callable[[Future], None]:
     def callback(future: Future) -> None:
         try:
             message_id = future.result()
+            event_message["pubsub_message_id"] = message_id
             logger.info(f"Message published with ID: {message_id}")
         except GoogleAPICallError as e:
             logger.error(f"A Google API call error occurred: {e}")

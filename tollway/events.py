@@ -28,7 +28,7 @@ class EventProcessor(ABC):
         if self.publisher and self.topic_path:
             data = encode_message(message=event_message)
             future = self.publisher.publish(topic=self.topic_path, data=data)
-            future.add_done_callback(future_callback(logger=pubsub_logger))
+            future.add_done_callback(future_callback(logger=pubsub_logger, event_message=event_message))
 
     def add_to_events_log(self, event_message: dict[str, Union[str, bool]]) -> None:
         self.events_log["all_events"].append(event_message)
@@ -72,6 +72,17 @@ class LateEventProcessor(EventProcessor):
         return late_event_message
 
     def process_event(self, pubsub_logger):
+        """
+        For processing of late events, previous timestamps are temporarily stored
+        in events_log["late_events"]. If the number of late events is equal to
+        LATE_EVENT_RATE for a specific time unit, then the following occurs:
+
+        1. Create a late event
+        2. If pubsub is enabled, push the message to pubsub and log to pubsub.log
+        3. Add key-value pair identifying event as a late (useful with --output-file)
+        4. Add event to events_log["all_events"] (useful with --output-file)
+        5. Reset events_log["late_events"][self.time_unit]
+        """
         for time_interval, late_events in self.events_log["late_events"].items():
             self.time_unit = time_interval
             if len(late_events) == LATE_EVENT_RATE[self.time_unit]:
@@ -98,8 +109,10 @@ class DuplicateEventProcessor(EventProcessor):
         DUPLICATE_RATE, then the following occurs:
 
         1. Randomly select a previous event to serve as the duplicate
-        2. If pubsub is enabled, push the message to pubsub
-        3. ...
+        2. If pubsub is enabled, push the message to pubsub and log to pubsub.log
+        3. Add key-value pair identifying event as a duplicate (useful with --output-file)
+        4. Add event to events_log["all_events"] (useful with --output-file)
+        5. Reset events_log["past_events"]
         """
         if len(self.events_log["past_events"]) == DUPLICATE_RATE:
             duplicate_event = self.create_event()

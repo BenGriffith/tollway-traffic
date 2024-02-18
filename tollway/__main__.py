@@ -111,7 +111,7 @@ def main(
         if pubsub:
             data = encode_message(message=message)
             future = publisher.publish(topic=topic_path, data=data)
-            future.add_done_callback(future_callback(logger=pubsub_logger))
+            future.add_done_callback(future_callback(logger=pubsub_logger, event_message=message))
 
         if not late_processed and not duplicate_processed:
             events_log["all_events"].append(message)
