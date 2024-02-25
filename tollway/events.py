@@ -1,9 +1,11 @@
+import logging
 import random
+from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
-from typing import Union
+from typing import Optional, Union
 
 from faker import Faker
-from google.pubsub_v1 import PublisherClient, Topic
+from google.pubsub_v1 import PublisherClient
 
 from tollway.constants import (
     DUPLICATE_RATE,
@@ -15,27 +17,29 @@ from tollway.utils import EventsLog, encode_message, future_callback
 from tollway.vehicle import create_message, create_tollway, create_vehicle
 
 
-class EventProcessor:
-    def __init__(self, events_log: EventsLog, publisher: PublisherClient, topic_path: Topic) -> None:
+class EventProcessor(ABC):
+    def __init__(self, events_log: EventsLog, publisher: PublisherClient, topic_path: Optional[str]) -> None:
         self.events_log = events_log
         self.publisher = publisher
         self.topic_path = topic_path
         self.processed = False
 
-    def publish_event(self, event_message: dict[str, str]) -> None:
+    def publish_event(self, event_message: dict[str, str], pubsub_logger: logging.Logger) -> None:
         if self.publisher and self.topic_path:
             data = encode_message(message=event_message)
             future = self.publisher.publish(topic=self.topic_path, data=data)
-            future.add_done_callback(future_callback)
+            future.add_done_callback(future_callback(logger=pubsub_logger, event_message=event_message))
 
-    def logging(self, event_message: dict[str, Union[str, bool]]) -> None:
+    def add_to_events_log(self, event_message: dict[str, Union[str, bool]]) -> None:
         self.events_log["all_events"].append(event_message)
 
+    @abstractmethod
     def create_event(self) -> dict[str, Union[str, bool]]:
-        raise NotImplementedError
+        """Implement in subclass to create event"""
 
-    def process_event(self) -> tuple[EventsLog, bool]:
-        raise NotImplementedError
+    @abstractmethod
+    def process_event(self, pubsub_logger: logging.Logger) -> tuple[EventsLog, bool]:
+        """Implement in subclass to process event"""
 
 
 class LateEventProcessor(EventProcessor):
@@ -43,7 +47,7 @@ class LateEventProcessor(EventProcessor):
         self,
         events_log: EventsLog,
         publisher: PublisherClient,
-        topic_path: Topic,
+        topic_path: Optional[str],
         fake: Faker,
         tollways: dict,
     ) -> None:
@@ -67,14 +71,25 @@ class LateEventProcessor(EventProcessor):
         )
         return late_event_message
 
-    def process_event(self):
+    def process_event(self, pubsub_logger):
+        """
+        For processing of late events, previous timestamps are temporarily stored
+        in events_log["late_events"]. If the number of late events is equal to
+        LATE_EVENT_RATE for a specific time unit, then the following occurs:
+
+        1. Create a late event
+        2. If pubsub is enabled, push the message to pubsub and log to pubsub.log
+        3. Add key-value pair identifying event as a late (useful with --output-file)
+        4. Add event to events_log["all_events"] (useful with --output-file)
+        5. Reset events_log["late_events"][self.time_unit]
+        """
         for time_interval, late_events in self.events_log["late_events"].items():
             self.time_unit = time_interval
             if len(late_events) == LATE_EVENT_RATE[self.time_unit]:
                 late_event = self.create_event()
-                self.publish_event(event_message=late_event)
+                self.publish_event(event_message=late_event, pubsub_logger=pubsub_logger)
                 late_event["is_late"] = self.time_unit
-                self.logging(event_message=late_event)
+                self.add_to_events_log(event_message=late_event)
                 self.events_log["late_events"][self.time_unit] = []
                 self.processed = True
         return self.events_log, self.processed
@@ -87,12 +102,23 @@ class DuplicateEventProcessor(EventProcessor):
     def create_event(self):
         return random.choice(self.events_log["past_events"])
 
-    def process_event(self):
+    def process_event(self, pubsub_logger):
+        """
+        For processing of duplicate events, previous events are temporarily stored
+        in events_log["past_events"]. If the number of previous events is equal to
+        DUPLICATE_RATE, then the following occurs:
+
+        1. Randomly select a previous event to serve as the duplicate
+        2. If pubsub is enabled, push the message to pubsub and log to pubsub.log
+        3. Add key-value pair identifying event as a duplicate (useful with --output-file)
+        4. Add event to events_log["all_events"] (useful with --output-file)
+        5. Reset events_log["past_events"]
+        """
         if len(self.events_log["past_events"]) == DUPLICATE_RATE:
             duplicate_event = self.create_event()
-            self.publish_event(event_message=duplicate_event)
+            self.publish_event(event_message=duplicate_event, pubsub_logger=pubsub_logger)
             duplicate_event["is_duplicate"] = True
-            self.logging(event_message=duplicate_event)
+            self.add_to_events_log(event_message=duplicate_event)
             self.events_log["past_events"] = []
             self.processed = True
         return self.events_log, self.processed

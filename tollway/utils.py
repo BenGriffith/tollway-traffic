@@ -1,15 +1,18 @@
 import json
 import logging
-from collections import namedtuple
 from pathlib import Path
-from typing import Callable, Mapping, TypedDict, Union
+from typing import Callable, Mapping, NamedTuple, Optional, TypedDict, Union
 
 from decouple import config
+from google.api_core.exceptions import GoogleAPICallError, RetryError
 from google.cloud import pubsub_v1
 from google.cloud.pubsub_v1.publisher.futures import Future
 from google.oauth2 import service_account
 
-Topic = namedtuple("Topic", ["publisher", "topic_path"])
+
+class Topic(NamedTuple):
+    publisher: pubsub_v1.PublisherClient
+    topic_path: Optional[str] = None
 
 
 class EventsLog(TypedDict):
@@ -29,32 +32,22 @@ def get_topic(pubsub: bool) -> Topic:
     return Topic(publisher=None, topic_path=None)
 
 
-def get_pubsub_logger(pubsub: bool) -> logging.Logger:
-    logger = logging.getLogger("pubsub")
-    if pubsub:
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            filename="pubsub.log",
-            filemode="a",
-        )
-    else:
-        logger.handlers.clear()
-        logger.addHandler(logging.NullHandler())
-    return logger
-
-
 def encode_message(message: dict) -> bytes:
     return json.dumps(message).encode("utf-8")
 
 
-def future_callback(logger: logging.Logger) -> Callable[[Future], None]:
+def future_callback(logger: logging.Logger, event_message: dict[str, str]) -> Callable[[Future], None]:
     def callback(future: Future) -> None:
         try:
             message_id = future.result()
+            event_message["pubsub_message_id"] = message_id
             logger.info(f"Message published with ID: {message_id}")
+        except GoogleAPICallError as e:
+            logger.error(f"A Google API call error occurred: {e}")
+        except RetryError as e:
+            logger.error(f"A retry error occurred: {e}")
         except Exception as e:
-            logger.error(f"An exception occurred: {e}")
+            logger.exception("An unexpected exception occurred")
 
     return callback
 
@@ -65,6 +58,6 @@ def write_to_file(filename: str, events_log: list[Mapping[str, Union[str, bool]]
         json.dump(obj=events_log, fp=file, indent=1)
 
 
-def get_config_with_default(key: str, default_value: str) -> int:
+def get_config_with_default(key: str, default_value: int) -> int:
     value = config(key, default=default_value)
-    return int(default_value) if value.strip() == "" else int(value)
+    return default_value if value == "" else int(value)
